@@ -115,7 +115,7 @@ Robinhood Chain 46630. Все четыре контракта развёрнут
 |------|-----------|
 | [`src/MaclaurinToken.sol`](src/MaclaurinToken.sol) | ERC-20. Весь сапплай в конструкторе, `mint` не существует |
 | [`src/MaclaurinEmission.sol`](src/MaclaurinEmission.sol) | Таблица эпох, взвешенный стейкинг с радиусами, учёт остаточного члена |
-| [`src/MaclaurinCurve.sol`](src/MaclaurinCurve.sol) | Бондинг-кривая: первичная продажа за ETH с гарантией возврата покупателю |
+| [`src/MaclaurinCurve.sol`](src/MaclaurinCurve.sol) | Бондинг-кривая: первичная продажа за ETH, обратный выкуп по текущей цене кривой (не по цене покупки — см. «Риски») |
 | [`src/MaclaurinVesting.sol`](src/MaclaurinVesting.sol) | Казна под замком до одной даты. Функции досрочного вывода не существует |
 | [`script/Deploy.s.sol`](script/Deploy.s.sol) | Деплой токена и эмиссии одной транзакцией + проверка инвариантов на цепочке |
 | [`script/Launch.s.sol`](script/Launch.s.sol) | Фаза 4 одним прогоном: казна, кривая, раскладка genesis. Падает, если окно анти-снайпа закрылось до прихода инвентаря |
