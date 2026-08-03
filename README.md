@@ -22,11 +22,31 @@ ERC-20, у которого график эмиссии буквально яв�
 механику после деплоя было бы невозможно.
 
 **Проект в мейннет не деплоился.** Сеть запуска — **Robinhood Chain** (chain ID 4663,
-Arbitrum Orbit L2), тестнет — 46630. В тестнете развёрнуты все четыре контракта и
-выполнена раскладка genesis. Адреса здесь не публикуются намеренно: тестнет-контракты
-ещё не верифицированы, а правило проекта — **ни одного адреса наружу до верификации**
-([RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md) §8). Там же — адреса тестнета, критерии
-готовности к мейннету и текущие блокеры.
+Arbitrum Orbit L2), тестнет — 46630.
+
+## Тестнет: все четыре контракта развёрнуты и верифицированы
+
+| Контракт | Адрес |
+|---|---|
+| `MaclaurinToken` | [`0xC0B09CE55081fdFD1bBc4b5aA9e835FAe273c925`](https://explorer.testnet.chain.robinhood.com/address/0xC0B09CE55081fdFD1bBc4b5aA9e835FAe273c925) |
+| `MaclaurinEmission` | [`0xF74C7cf39e525bFbFDF13E5db14ecC2efE53a1C8`](https://explorer.testnet.chain.robinhood.com/address/0xF74C7cf39e525bFbFDF13E5db14ecC2efE53a1C8) |
+| `MaclaurinCurve` | [`0xc66a981Dae0Fafd649E75b488dbE9206404b6a98`](https://explorer.testnet.chain.robinhood.com/address/0xc66a981Dae0Fafd649E75b488dbE9206404b6a98) |
+| `MaclaurinVesting` | [`0xB016e35e5dd5fdA166bFDf305Adb81c0c7963C09`](https://explorer.testnet.chain.robinhood.com/address/0xB016e35e5dd5fdA166bFDf305Adb81c0c7963C09) |
+
+Исходники верифицированы на Blockscout — читаются и проверяются прямо в эксплорере.
+Ничего из написанного ниже не нужно принимать на веру: `totalSupply()`,
+`epochAmount(27)`, `multiplier(7)` против `E_FIXED` вызываются в один клик.
+
+**Что уже проверено в живой сети, а не в тестах:**
+
+- раскладка genesis выполнена одним прогоном, **на адресе создателя ноль токенов**;
+- полный цикл деньгами: покупка на 0.001 ETH → `boughtOf` записалось именным правом
+  → продажа → вернулось 0.00098 ETH (потеря 1.99% — две комиссии по 1%);
+- после выкупа `sold` и `boughtOf` обнулились, в резерве остался **1 wei** пыли
+  от округления вниз — достать его нельзя, функции «подмести остаток» не существует.
+
+Критерии готовности к мейннету и оставшиеся блокеры —
+в [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md).
 
 ---
 
