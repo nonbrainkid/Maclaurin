@@ -1,0 +1,47 @@
+name: Deploy site to GitHub Pages
+
+# Публикует статический сайт из web/ на GitHub Pages.
+#
+# Почему через Actions, а не «Deploy from a branch»: Pages умеет брать только
+# корень репозитория или /docs, а сайт лежит в web/ и переносить его незачем —
+# рядом с ним живут контракты, и корень занят проектом Foundry.
+#
+# Сайт статический: три файла, без сборки, без npm, без внешних запросов кроме
+# публичного RPC. Поэтому шага сборки здесь нет и не должно появиться.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'web/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Одновременно идёт только одна публикация; новая отменяет старую в очереди,
+# но не прерывает уже идущую — иначе можно получить полуразвёрнутый сайт.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+
+      - id: deployment
+        uses: actions/deploy-pages@v4

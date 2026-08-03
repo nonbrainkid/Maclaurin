@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Maclaurin Series (MACLRN) — сапплай равен e, эмиссия равна 1/n!</title>
-<meta name="description" content="ERC-20, у которого график эмиссии буквально является рядом Маклорена для e. Сапплай ограничен математически: 2 718 281 828.459045235360287471 токена. Эмиссия заканчивается сама на 27-й эпохе.">
+<title>Maclaurin Series (MACLRN) — supply is e, emission is 1/n!</title>
+<meta name="description" content="An ERC-20 whose issuance schedule is literally the Maclaurin series for e. Supply is bounded by arithmetic, not by policy: 2 718 281 828.459045235360287471 tokens. Emission stops on its own at epoch 27.">
 <meta name="color-scheme" content="dark light">
 <meta name="referrer" content="no-referrer">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<a class="skip" href="#live">К данным с цепочки</a>
+<a class="skip" href="#live" data-i18n="skip">Skip to on-chain data</a>
 
 <header class="site-header">
   <div class="wrap header-inner">
@@ -20,13 +20,19 @@
       <span class="brand-name">Maclaurin&nbsp;Series</span>
       <span class="brand-ticker">MACLRN</span>
     </div>
-    <nav class="site-nav" aria-label="Разделы">
-      <a href="#live">Данные</a>
-      <a href="#mechanics">Механика</a>
-      <a href="#immutable">Неизменяемость</a>
-      <a href="#buy">Покупка</a>
-      <a href="#risks">Риски</a>
-    </nav>
+    <div class="header-tools">
+      <nav class="site-nav" data-i18n-aria="nav.aria" aria-label="Sections">
+        <a href="#live" data-i18n="nav.live">Live data</a>
+        <a href="#mechanics" data-i18n="nav.mechanics">Mechanics</a>
+        <a href="#immutable" data-i18n="nav.immutable">Immutability</a>
+        <a href="#buy" data-i18n="nav.buy">Buy</a>
+        <a href="#risks" data-i18n="nav.risks">Risks</a>
+      </nav>
+      <div class="lang-switch" role="group" data-i18n-aria="lang.aria" aria-label="Language">
+        <button type="button" class="lang-btn" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" class="lang-btn" data-lang="ru" aria-pressed="false">RU</button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -34,196 +40,202 @@
 
 <!-- ─────────────────────────────  HERO  ───────────────────────────── -->
 <section class="hero wrap">
-  <h1>Сапплай равен <span class="mono">e</span>. Эмиссия равна <span class="mono">1/n!</span>.</h1>
+  <h1 data-i18n-html="hero.title">Supply is <span class="mono">e</span>. Emission is <span class="mono">1/n!</span>.</h1>
 
-  <p class="lede">
-    ERC-20, у которого график выпуска — не решение команды, а частичные суммы
-    ряда. Общий сапплай равен числу <span class="mono">e</span> с точностью до
-    18 знаков после запятой. Эмиссия затухает факториально и заканчивается сама:
-    не на дате из дорожной карты, а на эпохе, где очередной член ряда впервые
-    оказывается меньше одной базовой единицы токена.
+  <p class="lede" data-i18n-html="hero.lede">
+    An ERC-20 whose issuance schedule is not a team decision but the partial sums
+    of a series. Total supply equals the number <span class="mono">e</span> to 18
+    decimal places. Emission decays factorially and terminates on its own: not on
+    a roadmap date, but at the epoch where the next term of the series first falls
+    below one base unit of the token.
   </p>
 
-  <p class="note">
-    <strong>Почему «Маклорен».</strong> Ряд Маклорена — это ряд Тейлора,
-    разложенный в нуле. Наше разложение <span class="mono">e<sup>x</sup> = Σ x<sup>n</sup>/n!</span>
-    построено вокруг точки <span class="mono">x = 0</span> и взято при
-    <span class="mono">x = 1</span>, что и даёт <span class="mono">e = Σ 1/n!</span>.
-    Точка разложения здесь не произвольная, а нулевая — значит, это ряд Маклорена,
-    а название проекта описывает механику буквально, а не по мотивам.
+  <p class="note" data-i18n-html="hero.why">
+    <strong>Why “Maclaurin”.</strong> A Maclaurin series is a Taylor series
+    expanded at zero. The expansion <span class="mono">e<sup>x</sup> = Σ x<sup>n</sup>/n!</span>
+    used here is built around the point <span class="mono">x = 0</span> and taken at
+    <span class="mono">x = 1</span>, which yields <span class="mono">e = Σ 1/n!</span>.
+    The expansion point is not arbitrary, it is zero — so this is a Maclaurin
+    series, and the project name describes the mechanism literally rather than by
+    analogy.
   </p>
 
   <dl class="facts">
     <div>
-      <dt>Общий сапплай</dt>
+      <dt data-i18n="hero.fact.supply.dt">Total supply</dt>
       <dd class="mono">2 718 281 828.459045235360287471</dd>
-      <dd class="sub">= floor(e × 10<sup>27</sup>) базовых единиц, 18 знаков</dd>
+      <dd class="sub" data-i18n-html="hero.fact.supply.sub">= floor(e × 10<sup>27</sup>) base units, 18 decimals</dd>
     </div>
     <div>
-      <dt>Награда эпохи n</dt>
+      <dt data-i18n="hero.fact.reward.dt">Epoch n reward</dt>
       <dd class="mono">10<sup>27</sup> / n!</dd>
-      <dd class="sub">эпоха — 7 дней, эмиссия идёт с n = 2 по n = 26</dd>
+      <dd class="sub" data-i18n="hero.fact.reward.sub">an epoch is 7 days; emission runs from n = 2 through n = 26</dd>
     </div>
     <div>
-      <dt>Конец эмиссии</dt>
+      <dt data-i18n="hero.fact.end.dt">End of emission</dt>
       <dd class="mono">n = 27</dd>
-      <dd class="sub">10<sup>27</sup>/27! = 0 при целочисленном делении</dd>
+      <dd class="sub" data-i18n-html="hero.fact.end.sub">10<sup>27</sup>/27! = 0 under integer division</dd>
     </div>
   </dl>
 </section>
 
-<!-- ─────────────────────────  ЖИВЫЕ ДАННЫЕ  ──────────────────────── -->
+<!-- ────────────────────────────  LIVE DATA  ───────────────────────── -->
 <section id="live" class="wrap">
-  <h2>Данные с цепочки</h2>
-  <p class="section-lede">
-    Всё ниже читается прямо из контрактов через <span class="mono">eth_call</span> к публичному
-    RPC сети Robinhood Chain при открытии страницы. В вёрстке этих чисел нет —
-    вёрстку можно подделать, ответ узла нельзя. Рядом с каждым числом — ссылка
-    на тот же вызов в эксплорере и точная команда, которой его повторить.
+  <h2 data-i18n="live.h2">On-chain data</h2>
+  <p class="section-lede" data-i18n-html="live.lede">
+    Everything below is read straight from the contracts with
+    <span class="mono">eth_call</span> against a public Robinhood Chain RPC
+    endpoint when the page loads. None of these numbers live in the markup —
+    markup can be forged, a node's answer cannot. Next to every number is a link
+    to the same call in the explorer and the exact command that reproduces it.
+    Several endpoints are configured: if the first one does not answer, the page
+    silently moves to the next, after checking its chain ID first.
   </p>
 
   <div id="chain-banner" class="banner banner-warn" hidden></div>
 
   <div class="status-bar">
-    <span id="status-text" class="status-text" role="status" aria-live="polite">Загрузка…</span>
-    <button id="refresh" type="button" class="btn btn-ghost">Обновить</button>
+    <span id="status-text" class="status-text" role="status" aria-live="polite">Loading…</span>
+    <button id="refresh" type="button" class="btn btn-ghost" data-i18n="live.refresh">Refresh</button>
   </div>
 
   <div class="metrics">
 
     <article class="metric" id="m-epoch">
-      <h3>Текущая эпоха</h3>
+      <h3 data-i18n="card.epoch.h">Current epoch</h3>
       <p class="metric-value" data-field="value">—</p>
       <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note"><code>currentEpoch()</code> — контракт эмиссии</p>
+      <p class="metric-note" data-i18n-html="card.epoch.note"><code>currentEpoch()</code> — emission contract</p>
       <p class="metric-links"></p>
     </article>
 
     <article class="metric" id="m-epochamount">
-      <h3>Награда текущей эпохи</h3>
+      <h3 data-i18n="card.epochAmount.h">Current epoch reward</h3>
       <p class="metric-value" data-field="value">—</p>
       <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note"><code>epochAmount(n)</code> — ровно 10<sup>27</sup>/n! базовых единиц</p>
+      <p class="metric-note" data-i18n-html="card.epochAmount.note"><code>epochAmount(n)</code> — exactly 10<sup>27</sup>/n! base units</p>
       <p class="metric-links"></p>
     </article>
 
     <article class="metric" id="m-emissionend">
-      <h3>Конец эмиссии</h3>
+      <h3 data-i18n="card.emissionEnd.h">End of emission</h3>
       <p class="metric-value" data-field="value">—</p>
       <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note"><code>emissionEnd()</code> — момент, после которого выпуск невозможен</p>
+      <p class="metric-note" data-i18n-html="card.emissionEnd.note"><code>emissionEnd()</code> — the moment after which issuance is impossible</p>
       <p class="metric-links"></p>
     </article>
 
     <article class="metric" id="m-supply">
-      <h3>Общий сапплай</h3>
+      <h3 data-i18n="card.supply.h">Total supply</h3>
       <p class="metric-value" data-field="value">—</p>
       <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note"><code>totalSupply()</code> — неизменен после развёртывания</p>
+      <p class="metric-note" data-i18n-html="card.supply.note"><code>totalSupply()</code> — fixed at deployment</p>
       <p class="metric-links"></p>
     </article>
 
     <article class="metric" id="m-sold">
-      <h3>Распродано кривой</h3>
+      <h3 data-i18n="card.sold.h">Sold by the curve</h3>
       <p class="metric-value" data-field="value">—</p>
       <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note"><code>sold()</code> / <code>INVENTORY()</code></p>
+      <p class="metric-note" data-i18n-html="card.sold.note"><code>sold()</code> / <code>INVENTORY()</code></p>
       <p class="metric-links"></p>
     </article>
 
     <article class="metric" id="m-price">
-      <h3>Текущая цена</h3>
+      <h3 data-i18n="card.price.h">Spot price</h3>
       <p class="metric-value" data-field="value">—</p>
       <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note"><code>spotPrice()</code> — цена одного целого токена</p>
+      <p class="metric-note" data-i18n-html="card.price.note"><code>spotPrice()</code> — price of one whole token</p>
       <p class="metric-links"></p>
     </article>
 
     <article class="metric" id="m-reserve">
-      <h3>Резерв кривой</h3>
+      <h3 data-i18n="card.reserve.h">Curve reserve</h3>
       <p class="metric-value" data-field="value">—</p>
       <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note"><code>reserve()</code> — обеспечение обратного выкупа</p>
+      <p class="metric-note" data-i18n-html="card.reserve.note"><code>reserve()</code> — backing for buy-backs</p>
       <p class="metric-links"></p>
     </article>
 
     <article class="metric" id="m-weight">
-      <h3>Суммарный вес стейкинга</h3>
+      <h3 data-i18n="card.weight.h">Total staking weight</h3>
       <p class="metric-value" data-field="value">—</p>
       <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note"><code>totalWeight()</code> — делитель наград; <code>totalStaked()</code> — тело депозитов</p>
+      <p class="metric-note" data-i18n-html="card.weight.note"><code>totalWeight()</code> — the reward divisor; <code>totalStaked()</code> — deposit principal</p>
       <p class="metric-links"></p>
     </article>
 
     <article class="metric" id="m-identity">
-      <h3>Имя и тикер в контракте</h3>
+      <h3 data-i18n="card.identity.h">Name and ticker in the contract</h3>
       <p class="metric-value" data-field="value">—</p>
       <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note"><code>name()</code>, <code>symbol()</code>, <code>decimals()</code> — как записано в байткоде</p>
+      <p class="metric-note" data-i18n-html="card.identity.note"><code>name()</code>, <code>symbol()</code>, <code>decimals()</code> — as written in the bytecode</p>
       <p class="metric-links"></p>
     </article>
 
     <article class="metric" id="m-proxy">
-      <h3>Слот прокси (EIP-1967)</h3>
+      <h3 data-i18n="card.proxy.h">Proxy slot (EIP-1967)</h3>
       <p class="metric-value" data-field="value">—</p>
       <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note"><code>eth_getStorageAt</code> по слоту реализации: ноль = за контрактом нет прокси</p>
+      <p class="metric-note" data-i18n-html="card.proxy.note"><code>eth_getStorageAt</code> on the implementation slot: zero means there is no proxy behind the contract</p>
       <p class="metric-links"></p>
     </article>
 
   </div>
 
-  <p class="footnote">
-    Ссылка «эксплорер» ведёт на вкладку <em>Read contract</em>, где тот же вызов
-    выполняется в браузере. Блок «повторить вызов» разворачивается в готовую
-    команду <span class="mono">curl</span> и её эквивалент на <span class="mono">cast</span>:
-    ответ узла не зависит ни от этой страницы, ни от её автора.
+  <p class="footnote" data-i18n-html="live.footnote">
+    The “explorer” link opens the <em>Read contract</em> tab, where the same call
+    runs in your own browser. The “reproduce this call” block expands into a
+    ready-made <span class="mono">curl</span> command and its
+    <span class="mono">cast</span> equivalent: the node's answer depends neither on
+    this page nor on its author.
   </p>
 </section>
 
-<!-- ───────────────────────────  МЕХАНИКА  ────────────────────────── -->
+<!-- ────────────────────────────  MECHANICS  ───────────────────────── -->
 <section id="mechanics" class="wrap">
-  <h2>Механика без математического образования</h2>
+  <h2 data-i18n="mech.h2">The mechanics, no maths background required</h2>
 
-  <h3>1. Сапплай — это число, а не круглая цифра</h3>
-  <p>
-    Обычно сапплай выбирают: миллиард, потому что красиво. Здесь он равен
-    основанию натурального логарифма, домноженному на 10<sup>27</sup>:
+  <h3 data-i18n="mech.supply.h">1. The supply is a number, not a round figure</h3>
+  <p data-i18n-html="mech.supply.p1">
+    Supply is normally chosen: a billion, because a billion looks good. Here it is
+    the base of the natural logarithm scaled by 10<sup>27</sup>:
   </p>
   <p class="callout mono">2 718 281 828.459045235360287471 MACLRN</p>
-  <p>
-    Ряд <span class="mono">e = 1/0! + 1/1! + 1/2! + 1/3! + …</span> сходится.
-    Сходится — значит, сколько членов ни складывай, сумма не превысит
-    <span class="mono">e</span>. Сапплай ограничен свойством ряда, а не обещанием
-    выпустить не больше некоторой суммы.
+  <p data-i18n-html="mech.supply.p2">
+    The series <span class="mono">e = 1/0! + 1/1! + 1/2! + 1/3! + …</span>
+    converges. Converging means that no matter how many terms you add, the sum
+    never exceeds <span class="mono">e</span>. The supply is bounded by a property
+    of the series, not by a promise to issue no more than some amount.
   </p>
-  <p>
-    Первые два члена (<span class="mono">1/0! + 1/1! = 2</span>) — это 2 000 000 000
-    токенов, 73.576% сапплая. Они существуют с нулевого блока и не фармятся.
-    Остальные 26.424% (718 281 828.459045235360287471 токена) лежат в контракте
-    эмиссии и раздаются по эпохам.
+  <p data-i18n-html="mech.supply.p3">
+    The first two terms (<span class="mono">1/0! + 1/1! = 2</span>) are
+    2 000 000 000 tokens, 73.576% of supply. They exist from block zero and cannot
+    be farmed. The remaining 26.424% (718 281 828.459045235360287471 tokens) sit in
+    the emission contract and are handed out epoch by epoch.
   </p>
 
-  <h3>2. Эмиссия затухает факториально</h3>
-  <p>
-    Эпоха длится 7 дней. Эпоха <span class="mono">n</span> выпускает ровно
-    <span class="mono">10<sup>27</sup>/n!</span> базовых единиц: эпоха 2 — половину,
-    эпоха 3 — шестую часть, эпоха 4 — двадцать четвёртую. Каждая следующая порция
-    меньше предыдущей не на проценты, а в разы, и разрыв растёт.
+  <h3 data-i18n="mech.decay.h">2. Emission decays factorially</h3>
+  <p data-i18n-html="mech.decay.p1">
+    An epoch lasts 7 days. Epoch <span class="mono">n</span> issues exactly
+    <span class="mono">10<sup>27</sup>/n!</span> base units: epoch 2 issues one
+    half, epoch 3 one sixth, epoch 4 one twenty-fourth. Each portion is smaller
+    than the previous one not by percentage points but by whole factors, and the
+    gap keeps widening.
   </p>
-  <p>
-    Практическое следствие: за первые пять эпох выпускается 99.97% пула эмиссии.
-    Хвост при этом не обрывается — он продолжается, просто быстро становится
-    незначимым. Это противоположность халвингу, где каждый шаг делит награду
-    ровно надвое бесконечно долго.
+  <p data-i18n="mech.decay.p2">
+    The practical consequence: the first five epochs release 99.97% of the emission
+    pool. The tail is not cut off — it continues, it simply becomes negligible very
+    quickly. This is the opposite of halving, where every step divides the reward
+    exactly in two, forever.
   </p>
 
   <details class="table-details">
-    <summary>Полная таблица эпох (константы, захардкоженные в контракте)</summary>
+    <summary data-i18n="mech.table.summary">Full epoch table (constants hardcoded in the contract)</summary>
     <div class="table-scroll">
       <table>
         <thead>
-          <tr><th>n</th><th>n!</th><th>базовых единиц</th><th>токенов</th><th>% сапплая</th></tr>
+          <tr><th>n</th><th>n!</th><th data-i18n="mech.table.th.units">base units</th><th data-i18n="mech.table.th.tokens">tokens</th><th data-i18n="mech.table.th.pct">% of supply</th></tr>
         </thead>
         <tbody class="mono">
           <tr><td>2</td><td>2</td><td>500000000000000000000000000</td><td>500 000 000</td><td>18.394%</td></tr>
@@ -251,190 +263,197 @@
           <tr><td>24</td><td>620448401733239439360000</td><td>1611</td><td>—</td><td>—</td></tr>
           <tr><td>25</td><td>15511210043330985984000000</td><td>64</td><td>—</td><td>—</td></tr>
           <tr><td>26</td><td>403291461126605635584000000</td><td>2</td><td>—</td><td>—</td></tr>
-          <tr class="row-final"><td>27</td><td>10888869450418352160768000000</td><td>0 — эмиссия завершена</td><td>—</td><td>—</td></tr>
+          <tr class="row-final"><td>27</td><td>10888869450418352160768000000</td><td data-i18n="mech.table.final">0 — emission complete</td><td>—</td><td>—</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="footnote">
-      Сумма эпох 2…26 = 718 281 828 459 045 235 360 287 457 базовых единиц.
-      Остаток от округления вниз — 14 единиц — навсегда остаётся в контракте
-      эмиссии. Это не потеря, а запас: выплатить больше, чем есть, невозможно
-      арифметически, без единой проверки в коде.
+    <p class="footnote" data-i18n="mech.table.footnote">
+      Epochs 2…26 sum to 718 281 828 459 045 235 360 287 457 base units. The
+      floor-rounding remainder — 14 units — stays in the emission contract forever.
+      That is not a loss but a buffer: paying out more than exists is
+      arithmetically impossible, without a single check in the code.
     </p>
   </details>
 
-  <h3>3. Эмиссия заканчивается сама</h3>
-  <p>
-    На эпохе 27 член ряда равен <span class="mono">10<sup>27</sup>/27!</span>.
-    27! — это примерно <span class="mono">1.089 × 10<sup>28</sup></span>, то есть
-    больше числителя. В целочисленной арифметике EVM дробей нет: результат деления
-    равен нулю. Не «округляется до нуля при отображении», а именно равен нулю.
+  <h3 data-i18n="mech.end.h">3. Emission terminates on its own</h3>
+  <p data-i18n-html="mech.end.p1">
+    At epoch 27 the term of the series is
+    <span class="mono">10<sup>27</sup>/27!</span>. 27! is roughly
+    <span class="mono">1.089 × 10<sup>28</sup></span>, which is larger than the
+    numerator. EVM arithmetic is integer-only, with no fractions: the division
+    yields zero. Not “rounded to zero for display” — it is zero.
   </p>
-  <p class="callout">
-    Конец эмиссии — свойство арифметики uint256, а не решение мультисига.
-    Никто не голосует за прекращение выпуска, никто не может его продлить:
-    функции, способной это сделать, в контракте не существует.
+  <p class="callout" data-i18n="mech.end.callout">
+    The end of emission is a property of uint256 arithmetic, not a multisig
+    decision. Nobody votes to stop issuance and nobody can extend it: no function
+    capable of doing so exists in the contract.
   </p>
 
-  <h3>4. Стейкинг: радиус сходимости</h3>
-  <p>
-    Каждый ряд сходится лишь внутри своего радиуса. Стейкер выбирает радиус
-    <span class="mono">R</span> — на сколько эпох лочится позиция. Множитель наград равен
-    частичной сумме того же самого ряда до <span class="mono">R</span>-го члена.
+  <h3 data-i18n="mech.stake.h">4. Staking: radius of convergence</h3>
+  <p data-i18n-html="mech.stake.p1">
+    Every series converges only inside its own radius. A staker picks a radius
+    <span class="mono">R</span> — the number of epochs the position is locked for.
+    The reward multiplier is the partial sum of that same series up to the
+    <span class="mono">R</span>-th term.
   </p>
   <div class="table-scroll">
     <table>
       <thead>
-        <tr><th>R</th><th>Лок</th><th>Множитель</th><th>Прирост к предыдущему</th></tr>
+        <tr><th>R</th><th data-i18n="mech.stake.th.lock">Lock</th><th data-i18n="mech.stake.th.mult">Multiplier</th><th data-i18n="mech.stake.th.delta">Increment over previous</th></tr>
       </thead>
       <tbody class="mono">
-        <tr><td>1</td><td>7 дней</td><td>1.000000</td><td>—</td></tr>
-        <tr><td>2</td><td>14 дней</td><td>2.000000</td><td>+1/1!</td></tr>
-        <tr><td>3</td><td>21 день</td><td>2.500000</td><td>+1/2!</td></tr>
-        <tr><td>4</td><td>28 дней</td><td>2.666666…</td><td>+1/3!</td></tr>
-        <tr><td>5</td><td>35 дней</td><td>2.708333…</td><td>+1/4!</td></tr>
-        <tr><td>6</td><td>42 дня</td><td>2.716666…</td><td>+1/5!</td></tr>
-        <tr><td>7</td><td>49 дней</td><td>2.718055…</td><td>+1/6!</td></tr>
-        <tr class="row-final"><td>∞</td><td>—</td><td>e = 2.718281828459045235</td><td>недостижим</td></tr>
+        <tr><td>1</td><td data-i18n="mech.stake.d7">7 days</td><td>1.000000</td><td>—</td></tr>
+        <tr><td>2</td><td data-i18n="mech.stake.d14">14 days</td><td>2.000000</td><td>+1/1!</td></tr>
+        <tr><td>3</td><td data-i18n="mech.stake.d21">21 days</td><td>2.500000</td><td>+1/2!</td></tr>
+        <tr><td>4</td><td data-i18n="mech.stake.d28">28 days</td><td>2.666666…</td><td>+1/3!</td></tr>
+        <tr><td>5</td><td data-i18n="mech.stake.d35">35 days</td><td>2.708333…</td><td>+1/4!</td></tr>
+        <tr><td>6</td><td data-i18n="mech.stake.d42">42 days</td><td>2.716666…</td><td>+1/5!</td></tr>
+        <tr><td>7</td><td data-i18n="mech.stake.d49">49 days</td><td>2.718055…</td><td>+1/6!</td></tr>
+        <tr class="row-final"><td>∞</td><td>—</td><td>e = 2.718281828459045235</td><td data-i18n="mech.stake.unreachable">unreachable</td></tr>
       </tbody>
     </table>
   </div>
-  <p>
-    Потолок — само число <span class="mono">e</span>, и он недостижим по построению:
-    частичная сумма ряда строго меньше его суммы. Это не маркетинговое ограничение,
-    которое можно снять голосованием, а свойство сходящегося ряда с положительными
-    членами. Константа <span class="mono">E_FIXED</span> лежит в контракте именно затем,
-    чтобы недостижимость проверялась на цепочке.
+  <p data-i18n-html="mech.stake.p2">
+    The ceiling is the number <span class="mono">e</span> itself, and it is
+    unreachable by construction: a partial sum of the series is strictly less than
+    the sum of the series. This is not a marketing cap that a vote could lift, but
+    a property of a convergent series with positive terms. The constant
+    <span class="mono">E_FIXED</span> sits in the contract precisely so that this
+    unreachability can be checked on-chain.
   </p>
-  <p>
-    Награда делится не по размеру депозита, а по весу:
-    <span class="mono">weight = staked × multiplier(R)</span>. Тело депозита при этом
-    учитывается отдельным счётчиком и в расчёте множителя не участвует никак.
+  <p data-i18n-html="mech.stake.p3">
+    Rewards are split by weight rather than by deposit size:
+    <span class="mono">weight = staked × multiplier(R)</span>. The deposit
+    principal is tracked by a separate counter and plays no part in the multiplier.
   </p>
 
-  <h3>5. Что заперто, а что нет</h3>
+  <h3 data-i18n="mech.locks.h">5. What is locked and what is not</h3>
   <ul class="rules">
-    <li>
-      <strong><code>claim()</code> закрыт до конца лока.</strong> До
-      <span class="mono">unlockTime</span> вызов ревертит <code>StillLocked</code>.
-      Иначе множитель выводился бы наградами каждую эпоху, и к моменту досрочного
-      выхода отбирать было бы уже нечего.
+    <li data-i18n-html="mech.locks.claim">
+      <strong><code>claim()</code> is closed until the lock expires.</strong>
+      Before <span class="mono">unlockTime</span> the call reverts with
+      <code>StillLocked</code>. Otherwise the multiplier would be drained as
+      rewards every epoch, and by the time somebody exited early there would be
+      nothing left to take back.
     </li>
-    <li>
-      <strong><code>unstake()</code> открыт всегда</strong>, включая активный лок.
-      Тело депозита возвращается целиком, до последней базовой единицы.
-      Правило «не трогать принципал ни при каких условиях» не нарушается.
+    <li data-i18n-html="mech.locks.unstake">
+      <strong><code>unstake()</code> is always open</strong>, including during an
+      active lock. The deposit principal comes back in full, down to the last base
+      unit. The rule “never touch the principal, under any circumstances” is not
+      broken.
     </li>
-    <li>
-      <strong>Досрочный выход сжигает награду.</strong> Накопленное обнуляется
-      и уходит в казну остаточного члена — целиком, даже при частичном выходе.
-      Пропорциональное сжигание выглядело бы справедливее, но позволяло бы выйти
-      телом на 99.99% и досидеть лок пылинкой, сохранив награду за полное тело.
+    <li data-i18n-html="mech.locks.forfeit">
+      <strong>Exiting early forfeits the reward.</strong> Everything accrued is
+      zeroed and goes to the remainder-term treasury — in full, even on a partial
+      exit. Proportional forfeiture would look fairer, but it would let somebody
+      withdraw 99.99% of the principal and sit out the rest of the lock with a
+      speck of dust, keeping the reward earned on the full principal.
     </li>
-    <li>
-      <strong>Никаких киперов и оракулов.</strong> Единственный внешний вход
-      контракта эмиссии — <span class="mono">block.timestamp</span>. Нет цены извне,
-      нет бота, от которого зависят выплаты, нет подписи, без которой ничего
-      не работает.
+    <li data-i18n-html="mech.locks.nokeepers">
+      <strong>No keepers, no oracles.</strong> The only external input to the
+      emission contract is <span class="mono">block.timestamp</span>. There is no
+      price fed from outside, no bot that payouts depend on, no signature without
+      which nothing works.
     </li>
   </ul>
 </section>
 
-<!-- ────────────────────────  НЕИЗМЕНЯЕМОСТЬ  ─────────────────────── -->
+<!-- ───────────────────────────  IMMUTABILITY  ─────────────────────── -->
 <section id="immutable" class="wrap">
-  <h2>Почему здесь нельзя напечатать токены</h2>
+  <h2 data-i18n="imm.h2">Why nobody can print tokens here</h2>
 
-  <p>
-    Самый частый способ рагпула — не эксплойт, а вполне легальная функция
-    <code>mint(address,uint256) onlyOwner</code>. Владелец печатает себе триллион
-    токенов и продаёт. Аудит такой контракт пропускает: там нет уязвимости,
-    там есть задокументированное полномочие. Единственная защита от этого —
-    чтобы такой функции физически не было в байткоде.
+  <p data-i18n-html="imm.p1">
+    The most common way to rug a token is not an exploit but a perfectly
+    legitimate <code>mint(address,uint256) onlyOwner</code>. The owner prints
+    themselves a trillion tokens and sells. An audit passes a contract like that:
+    there is no vulnerability in it, there is a documented privilege. The only
+    defence against it is for the function not to be in the bytecode at all.
   </p>
 
   <ul class="rules">
-    <li><strong>Функции <code>mint</code> не существует.</strong> Весь сапплай выпущен один раз, в конструкторе токена. После конструктора функций, меняющих сапплай, в контракте нет.</li>
-    <li><strong>Владельца нет.</strong> <code>Ownable</code> не используется ни в одном контракте — отказываться от владения нечем и не нужно. Нет <code>owner()</code>, нет ролей, нет мультисига с полномочиями.</li>
-    <li><strong>Прокси нет.</strong> Апгрейдимый токен — это тот же <code>mint</code>, только спрятанный за прокси. Слот реализации EIP-1967 читается прямо на этой странице: он равен нулю.</li>
-    <li><strong>Нет пауз, блэклистов, налога на трансфер и хуков.</strong> Обычный ERC-20 из OpenZeppelin без единой надстройки.</li>
-    <li><strong>У создателя нет доступа к резерву кривой.</strong> Функции, которая перевела бы <code>reserve</code> куда-либо, кроме продавца, в контракте не существует; комиссия живёт в отдельном счётчике и с резервом не смешивается.</li>
+    <li data-i18n-html="imm.mint"><strong>There is no <code>mint</code> function in the bytecode.</strong> The entire supply was issued once, in the token constructor. After the constructor there is no function in the contract that changes supply.</li>
+    <li data-i18n-html="imm.owner"><strong>There is no owner.</strong> <code>Ownable</code> is not used in any of the contracts — there is no ownership to renounce, and no need to. No <code>owner()</code>, no roles, no privileged multisig.</li>
+    <li data-i18n-html="imm.proxy"><strong>There is no proxy.</strong> An upgradeable token is the same <code>mint</code>, only hidden behind a proxy. The EIP-1967 implementation slot is read on this very page: it is zero.</li>
+    <li data-i18n-html="imm.plain"><strong>No pause, no blacklist, no transfer tax, no hooks.</strong> A plain OpenZeppelin ERC-20 with nothing bolted on.</li>
+    <li data-i18n-html="imm.reserve"><strong>The deployer has no access to the curve reserve.</strong> No function that would move <code>reserve</code> anywhere other than to a seller exists in the contract; the fee lives in a separate counter and never mixes with the reserve.</li>
   </ul>
 
-  <h3>Проверить это самому, не доверяя сайту</h3>
-  <p>
-    Ниже — команды, которые ищут селекторы привилегированных функций прямо
-    в развёрнутом байткоде. Пустой вывод <span class="mono">grep</span> означает, что такой
-    функции в контракте нет. Адреса подставляются автоматически из конфигурации
-    этой страницы, но проверять их стоит по ссылке на верифицированный исходник.
+  <h3 data-i18n="imm.verify.h">Check it yourself, without trusting this site</h3>
+  <p data-i18n-html="imm.verify.p">
+    Below are commands that search the deployed bytecode for the selectors of
+    privileged functions. Empty <span class="mono">grep</span> output means the
+    function is not in the contract. Addresses are substituted automatically from
+    this page's configuration, but they are worth checking against the link to the
+    verified source.
   </p>
   <pre class="code-block" id="verify-commands"><code>—</code></pre>
-  <p class="footnote">
+  <p class="footnote" data-i18n-html="imm.verify.footnote">
     <code>40c10f19</code> = <code>mint(address,uint256)</code>,
     <code>8da5cb5b</code> = <code>owner()</code>,
     <code>f2fde38b</code> = <code>transferOwnership(address)</code>,
     <code>3659cfe6</code> = <code>upgradeTo(address)</code>,
     <code>8456cb59</code> = <code>pause()</code>.
-    Селекторы считаются как первые 4 байта keccak256 от сигнатуры — их можно
-    получить самому через <span class="mono">cast sig</span>.
+    Selectors are the first 4 bytes of the keccak256 hash of the signature — you
+    can derive them yourself with <span class="mono">cast sig</span>.
   </p>
   <p id="verified-sources" class="links-inline"></p>
 </section>
 
-<!-- ──────────────────────────  КРИВАЯ / BUY  ─────────────────────── -->
+<!-- ──────────────────────────  CURVE / BUY  ───────────────────────── -->
 <section id="buy" class="wrap">
-  <h2>Покупка через бондинг-кривую</h2>
+  <h2 data-i18n="buy.h2">Buying through the bonding curve</h2>
 
-  <p>
-    Пула ликвидности нет: он требует капитала, которого у проекта нет, и при
-    маленькой глубине покупка на несколько долларов двигает цену на десятки
-    процентов. Вместо него — контракт-кривая, который держит инвентарь в
-    1 000 000 000 токенов (это половина genesis, разложенная по геометрическому
-    ряду 2 = 1 + 1/2 + 1/4 + …) и продаёт их по линейно растущей цене.
+  <p data-i18n="buy.p1">
+    There is no liquidity pool: a pool needs capital the project does not have,
+    and at shallow depth a few dollars of buying moves the price by tens of
+    percent. In its place is a curve contract that holds an inventory of
+    1 000 000 000 tokens (half of genesis, laid out along the geometric series
+    2 = 1 + 1/2 + 1/4 + …) and sells them at a linearly rising price.
   </p>
 
   <ul class="rules">
-    <li><strong>Цена растёт линейно, стоимость покупки — площадь трапеции.</strong> Только умножение и деление целых чисел, никаких приближений экспоненты. Формулу можно пересчитать на бумаге.</li>
-    <li><strong>От первого токена до последнего цена вырастает ровно в <span class="mono">e</span> раз:</strong> с 2 gwei до 5.436563656918090470 gwei за целый токен. Отношение проверяется одним делением на цепочке, потому что арифметика целочисленная.</li>
-    <li><strong>Комиссия 1% в ETH</strong> — константа, не переменная. Берётся до зачисления в резерв при покупке и из уже вычтенной суммы при продаже, поэтому резерв никогда не финансирует комиссию.</li>
-    <li><strong>Продать кривой можно ровно то, что у неё куплено.</strong> Право выкупа именное (<code>boughtOf(адрес)</code>) и не переносится обычным трансфером. Иначе держатель бесплатных токенов из genesis или наград стейкинга забрал бы ETH покупателей. Токены, купленные не у кривой, продаются на вторичном рынке, а не сюда.</li>
-    <li><strong>У продажи нет ни одного условия, зависящего от чьего-либо решения:</strong> только баланс, собственная защита от проскальзывания и не истёкший дедлайн. Ни пауз, ни списков, ни кулдауна.</li>
-    <li><strong>Первый час после старта</strong> действует лимит 10 000 000 токенов на адрес. Это смягчение, а не защита: лимит обходится несколькими кошельками — он лишь не даёт выкупить существенную долю инвентаря одной транзакцией в первом блоке.</li>
+    <li data-i18n-html="buy.rule.trapezoid"><strong>The price rises linearly, so the cost of a purchase is the area of a trapezoid.</strong> Integer multiplication and division only, no exponential approximations. The formula can be recomputed on paper.</li>
+    <li data-i18n-html="buy.rule.ratio"><strong>From the first token to the last, the price rises by exactly a factor of <span class="mono">e</span>:</strong> from 2 gwei to 5.436563656918090470 gwei per whole token. The ratio can be verified on-chain with a single division, because the arithmetic is integer.</li>
+    <li data-i18n-html="buy.rule.fee"><strong>A flat 1% fee in ETH</strong> — a constant, not a variable. It is taken before the reserve is credited on a buy, and out of the already-reduced amount on a sell, so the reserve never funds the fee.</li>
+    <li data-i18n-html="buy.rule.buyback"><strong>The curve is not an exchange: you can only sell back to it what you bought from it.</strong> The purchase right is tied to the address (<code>boughtOf(address)</code>) and does not travel with an ordinary transfer. Otherwise a holder of free genesis tokens or staking rewards would walk off with the buyers' ETH. Tokens acquired anywhere other than the curve are sold on a secondary market, not here.</li>
+    <li data-i18n-html="buy.rule.nodiscretion"><strong>Nothing in the sell path depends on anyone's decision:</strong> only your balance, your own slippage protection and a deadline that has not expired. No pauses, no lists, no cooldown.</li>
+    <li data-i18n-html="buy.rule.antisnipe"><strong>An anti-snipe window covers the first hour after launch</strong>, capping purchases at 10 000 000 tokens per address. It is a mitigation, not a defence: the cap is trivially bypassed with several wallets — it only stops a single transaction in the first block from taking a meaningful share of the inventory.</li>
   </ul>
 
   <div class="address-block">
-    <h3>Адрес контракта кривой</h3>
-    <p class="address-hint">Сверьте его с адресом в кошельке перед подтверждением транзакции. Ни один другой адрес не является контрактом продажи.</p>
+    <h3 data-i18n="buy.addr.h">Curve contract address</h3>
+    <p class="address-hint" data-i18n="buy.addr.hint">Check it against the address shown in your wallet before you confirm the transaction. No other address is the sale contract.</p>
     <div class="address-row">
       <code id="curve-address" class="address">0x0000000000000000000000000000000000000000</code>
-      <button id="copy-curve" type="button" class="btn btn-ghost" data-copy-target="curve-address">Скопировать</button>
+      <button id="copy-curve" type="button" class="btn btn-ghost" data-copy-target="curve-address" data-i18n="buy.addr.copy">Copy</button>
     </div>
     <p class="links-inline" id="curve-links"></p>
   </div>
 
   <div class="buy-panel">
     <div class="buy-wallet">
-      <button id="connect" type="button" class="btn">Подключить кошелёк</button>
-      <span id="wallet-state" class="wallet-state" role="status" aria-live="polite">Кошелёк не подключён</span>
+      <button id="connect" type="button" class="btn" data-i18n="buy.connect">Connect wallet</button>
+      <span id="wallet-state" class="wallet-state" role="status" aria-live="polite">Wallet not connected</span>
     </div>
 
     <div class="buy-form">
       <div class="field">
-        <label for="in-amount">Сумма, <span data-field="currency">ETH</span></label>
+        <label for="in-amount" data-i18n-html="buy.field.amount">Amount in <span data-field="currency">ETH</span></label>
         <input id="in-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.01" spellcheck="false">
       </div>
       <div class="field">
-        <label for="in-slippage">Проскальзывание, %</label>
+        <label for="in-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
         <input id="in-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
       </div>
       <div class="field">
-        <label for="in-deadline">Дедлайн, минут</label>
+        <label for="in-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
         <input id="in-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
       </div>
     </div>
 
     <div class="buy-actions">
-      <button id="quote" type="button" class="btn btn-ghost">Рассчитать</button>
-      <button id="do-buy" type="button" class="btn btn-primary" disabled>Купить</button>
+      <button id="quote" type="button" class="btn btn-ghost" data-i18n="buy.action.quote">Get quote</button>
+      <button id="do-buy" type="button" class="btn btn-primary" data-i18n="buy.action.buy" disabled>Buy</button>
     </div>
 
     <div id="quote-out" class="quote-out" hidden></div>
@@ -442,123 +461,124 @@
   </div>
 
   <details class="table-details">
-    <summary>Что именно подписывает кошелёк</summary>
-    <p>
-      Вызывается <code>buy(uint256 minTokensOut, uint256 deadline)</code>, сумма
-      передаётся как <span class="mono">value</span> транзакции.
-      <span class="mono">minTokensOut</span> считается из котировки
-      <code>previewBuy(ethIn)</code> с вычетом заданного проскальзывания: если
-      между расчётом и исполнением цена уйдёт дальше, транзакция откатится, а не
-      исполнится по худшей цене. Переплата сверх остатка инвентаря не возвращается
-      сдачей, а ревертит — поэтому есть <code>maxEthIn()</code>, точная верхняя граница
-      на текущий момент.
+    <summary data-i18n="buy.sig.summary">What the wallet actually signs</summary>
+    <p data-i18n-html="buy.sig.p">
+      The call is <code>buy(uint256 minTokensOut, uint256 deadline)</code>, with
+      the amount passed as the transaction's <span class="mono">value</span>.
+      <span class="mono">minTokensOut</span> is derived from the
+      <code>previewBuy(ethIn)</code> quote minus the slippage you set: if the price
+      moves further than that between quoting and execution, the transaction
+      reverts instead of filling at a worse price. Overpaying beyond the remaining
+      inventory is not refunded as change — it reverts — which is why
+      <code>maxEthIn()</code> exists, the exact upper bound at this moment.
     </p>
     <pre class="code-block"><code id="calldata-preview">—</code></pre>
   </details>
 
   <details class="table-details">
-    <summary>Как продать обратно кривой</summary>
-    <p>
-      Продажа — две транзакции, и виджета для неё здесь намеренно нет: статическая
-      страница не должна просить <code>approve</code> на неограниченную сумму. Порядок такой:
+    <summary data-i18n="buy.sell.summary">How to sell back to the curve</summary>
+    <p data-i18n-html="buy.sell.p1">
+      Selling takes two transactions, and there is deliberately no widget for it
+      here: a static page has no business asking for an unlimited
+      <code>approve</code>. The order is:
     </p>
     <ol class="rules">
-      <li><code>approve(адрес кривой, amount)</code> на контракте токена — выдать разрешение ровно на продаваемое количество;</li>
-      <li><code>sell(amount, minEthOut, deadline)</code> на контракте кривой.</li>
+      <li data-i18n-html="buy.sell.step1"><code>approve(curve address, amount)</code> on the token contract — grant an allowance for exactly the amount being sold;</li>
+      <li data-i18n-html="buy.sell.step2"><code>sell(amount, minEthOut, deadline)</code> on the curve contract.</li>
     </ol>
-    <p>
-      Оба вызова доступны во вкладке <em>Write contract</em> эксплорера — там же
-      видно тело функции. <code>boughtOf(ваш адрес)</code> показывает, сколько
-      токенов кривая обязана выкупить обратно.
+    <p data-i18n-html="buy.sell.p2">
+      Both calls are available in the explorer's <em>Write contract</em> tab, which
+      also shows the function body. <code>boughtOf(your address)</code> shows how
+      many tokens the curve is obliged to buy back.
     </p>
     <p class="links-inline" id="sell-links"></p>
   </details>
 
   <div class="no-wallet" id="no-wallet" hidden>
-    <h3>Кошелька в браузере нет</h3>
-    <p>
-      Страница не нашла <span class="mono">window.ethereum</span> — значит,
-      расширение-кошелёк не установлено или отключено для этого сайта. Что можно
-      сделать:
+    <h3 data-i18n="nowallet.h">No wallet in this browser</h3>
+    <p data-i18n-html="nowallet.p1">
+      The page did not find <span class="mono">window.ethereum</span>, which means
+      no wallet extension is installed or it is disabled for this site. What you
+      can do:
     </p>
     <ol class="rules">
-      <li>установить любой EVM-кошелёк с поддержкой произвольных сетей (например, MetaMask или Rabby) из официального магазина расширений браузера;</li>
-      <li>добавить сеть вручную: <span class="mono">Chain ID 4663</span>, RPC <span class="mono" data-field="rpc"></span>, эксплорер <span class="mono" data-field="explorer"></span>;</li>
-      <li>завести на адрес немного газового токена сети и вернуться сюда — кнопка подключения появится сама.</li>
+      <li data-i18n="nowallet.step1">install any EVM wallet that supports custom networks (MetaMask or Rabby, for example) from your browser's official extension store;</li>
+      <li data-i18n-html="nowallet.step2">add the network by hand: <span class="mono">Chain ID 4663</span>, RPC <span class="mono" data-field="rpc"></span>, explorer <span class="mono" data-field="explorer"></span>;</li>
+      <li data-i18n="nowallet.step3">fund the address with a little of the network's gas token and come back — the connect button will appear on its own.</li>
     </ol>
-    <p>
-      Мобильный браузер обычно не поддерживает расширения: там страницу нужно
-      открыть во встроенном браузере кошелька. Покупку можно совершить и вручную
-      из эксплорера, вкладка <em>Write contract</em> — сайт для этого не нужен.
+    <p data-i18n-html="nowallet.p2">
+      Mobile browsers usually do not support extensions: there you need to open
+      this page inside your wallet's built-in browser. A purchase can equally be
+      made by hand from the explorer's <em>Write contract</em> tab — this site is
+      not required for it.
     </p>
   </div>
 </section>
 
-<!-- ────────────────────────────  РИСКИ  ──────────────────────────── -->
+<!-- ─────────────────────────────  RISKS  ──────────────────────────── -->
 <section id="risks" class="wrap">
-  <h2>Риски. Прочитайте до покупки</h2>
+  <h2 data-i18n="risks.h2">Risks. Read this before buying</h2>
 
   <div class="risk-box">
     <ul class="rules">
-      <li>
-        <strong>Ликвидность мала, цена волатильна.</strong> Полная распродажа
-        инвентаря собирает в резерв около 3.72 ETH — это порядок величины всего
-        механизма, а не размер рынка. Любая заметная сделка ощутимо сдвигает цену
-        в обе стороны. Это работающая демонстрация полного цикла, а не глубокий
-        рынок.
+      <li data-i18n-html="risks.liquidity">
+        <strong>Liquidity is thin and the price is volatile.</strong> Selling the
+        entire inventory collects roughly 3.72 ETH into the reserve — that is the
+        order of magnitude of the whole mechanism, not the size of a market. Any
+        sizeable trade moves the price noticeably in either direction. This is a
+        working demonstration of a full cycle, not a deep market.
       </li>
-      <li>
-        <strong>Кривая — не биржа.</strong> Она выкупает обратно только то, что
-        у неё куплено, и только у того адреса, который покупал. Токены, полученные
-        любым другим путём, кривой не продаются. Вторичного рынка может не быть
-        вообще.
+      <li data-i18n-html="risks.notExchange">
+        <strong>The curve is not an exchange.</strong> It buys back only what was
+        bought from it, and only from the address that bought it. Tokens obtained
+        by any other route cannot be sold to the curve. There may be no secondary
+        market at all.
       </li>
-      <li>
-        <strong>Проект экспериментальный.</strong> Контракты неизменяемы: ошибку
-        нельзя исправить патчем, апгрейда не существует. Это одновременно и
-        главная гарантия, и главный риск.
+      <li data-i18n-html="risks.experimental">
+        <strong>The project is experimental.</strong> The contracts are immutable:
+        a bug cannot be patched and there is no upgrade path. That is at once the
+        principal guarantee and the principal risk.
       </li>
-      <li>
-        <strong>Аудит не является страховкой.</strong> Тесты, статический анализ
-        и независимое ревью снижают вероятность ошибки, но не доказывают её
-        отсутствие. Формально доказана только часть свойств.
+      <li data-i18n-html="risks.audit">
+        <strong>An audit is not insurance.</strong> Tests, static analysis and
+        independent review lower the probability of a bug but do not prove its
+        absence. Only some of the properties are formally proven.
       </li>
-      <li>
-        <strong>У токена нет доходности и нет обязательств перед вами.</strong>
-        Награды стейкинга — это перераспределение заранее выпущенного пула
-        эмиссии, а не прибыль от какой-либо деятельности. Никто не обещает роста
-        цены и не может его обеспечить.
+      <li data-i18n-html="risks.noYield">
+        <strong>The token has no yield and owes you nothing.</strong> Staking
+        rewards are a redistribution of a pre-issued emission pool, not profit from
+        any activity. Nobody promises price appreciation and nobody can deliver it.
       </li>
-      <li>
-        <strong>Сеть новая.</strong> Robinhood Chain, публичный RPC и эксплорер —
-        внешняя инфраструктура, на которую проект не влияет. Её недоступность
-        сделает недоступной и эту страницу, и работу с контрактами из браузера.
+      <li data-i18n-html="risks.network">
+        <strong>The network is new.</strong> Robinhood Chain, its public RPC
+        endpoints and its explorer are external infrastructure the project does not
+        control. If they become unavailable, so does this page and any work with
+        the contracts from a browser.
       </li>
-      <li>
-        <strong>Правовой статус не определён.</strong> Токен с механикой
-        распределения наград может квалифицироваться как ценная бумага в ряде
-        юрисдикций. Прямая продажа с сайта автором актива — не то же самое, что
-        предоставление ликвидности на DEX. Это не юридическая консультация;
-        соответствие местному праву — ваша ответственность.
+      <li data-i18n-html="risks.legal">
+        <strong>The legal status is unsettled.</strong> A token with a
+        reward-distribution mechanism may qualify as a security in a number of
+        jurisdictions. A direct sale from a website by the asset's author is not
+        the same thing as providing liquidity on a DEX. This is not legal advice;
+        compliance with your local law is your responsibility.
       </li>
-      <li>
-        <strong>Покупайте только на сумму, потерю которой вы готовы принять
-        полностью.</strong> Ничто на этой странице не является инвестиционной
-        рекомендацией.
+      <li data-i18n-html="risks.size">
+        <strong>Buy only an amount you are prepared to lose in full.</strong>
+        Nothing on this page is investment advice.
       </li>
     </ul>
   </div>
 </section>
 
-<!-- ────────────────────────────  ССЫЛКИ  ─────────────────────────── -->
+<!-- ─────────────────────────────  LINKS  ──────────────────────────── -->
 <section id="links" class="wrap">
-  <h2>Проверить</h2>
+  <h2 data-i18n="links.h2">Verify</h2>
   <div class="link-grid" id="link-grid"></div>
-  <p class="footnote">
-    Ссылки на контракты ведут на верифицированные исходники в эксплорере:
-    там сверяется байткод и читается тот же код, что лежит в репозитории.
-    Неверифицированный контракт стоит считать непроверенным независимо от того,
-    что написано на сайте.
+  <p class="footnote" data-i18n="links.footnote">
+    Contract links point to verified sources in the explorer: that is where the
+    bytecode is matched and where you read the same code that sits in the
+    repository. Treat an unverified contract as unchecked, whatever a website says
+    about it.
   </p>
 </section>
 
@@ -566,16 +586,17 @@
 
 <footer class="site-footer">
   <div class="wrap">
-    <p>
-      Maclaurin Series (MACLRN). Нарратив построен вокруг математики XVIII века,
-      а не вокруг публичного лица: имена, изображения и названия компаний реальных
-      людей не используются и ничьё одобрение не подразумевается.
+    <p data-i18n="footer.p1">
+      Maclaurin Series (MACLRN). The narrative is built around 18th-century
+      mathematics, not around a public figure: no real person's name or likeness
+      and no company name is used, and no endorsement is implied.
     </p>
-    <p class="footnote">
-      Страница статическая: без бэкенда, без аналитики, без сторонних скриптов и
-      шрифтов. Единственный сетевой запрос — <span class="mono">eth_call</span> к публичному
-      RPC сети, адрес которого виден в конфигурации <span class="mono">web/app.js</span>.
-      Транзакции подписывает ваш кошелёк, ключи страница не видит и не запрашивает.
+    <p class="footnote" data-i18n-html="footer.p2">
+      The page is static: no backend, no analytics, no third-party scripts or
+      fonts. The only network request is an <span class="mono">eth_call</span> to
+      the network's public RPC endpoints, whose addresses are visible in the
+      configuration in <span class="mono">web/app.js</span>. Transactions are
+      signed by your wallet; the page never sees your keys and never asks for them.
     </p>
   </div>
 </footer>
