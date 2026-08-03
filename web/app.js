@@ -85,8 +85,16 @@ const CONFIG = {
     repo:      'https://github.com/nonbrainkid/Maclaurin',
     audit:     'https://github.com/nonbrainkid/Maclaurin/blob/master/README.md#свойства-безопасности',
     specToken: 'https://github.com/nonbrainkid/Maclaurin/blob/master/MACLAURIN-TOKEN-SPEC.md',
-    specCurve: 'https://github.com/nonbrainkid/Maclaurin/blob/master/PHASE4-SPEC.md'
+    specCurve: 'https://github.com/nonbrainkid/Maclaurin/blob/master/PHASE4-SPEC.md',
+
+    /* Официальные каналы проекта. Разметка берёт их отсюда же, чтобы адрес
+       правился в одном месте, а не в шести. */
+    telegram:  'https://t.me/MaclaurinRHC',
+    x:         'https://x.com/MaclaurinRHC'
   },
+
+  /* Единый хэндл для показа рядом с иконками. */
+  handle: '@MaclaurinRHC',
 
   ui: {
     autoRefreshMs: 60000,      // 0 — выключить автообновление
@@ -176,7 +184,49 @@ const I18N = {
     'lang.en.aria': 'Switch the page to English',
     'lang.ru.aria': 'Switch the page to Russian',
 
+    'nav.contracts': 'Contracts',
+
+    'social.tg.aria': 'Telegram channel, opens in a new tab',
+    'social.x.aria': 'X profile, opens in a new tab',
+    'social.gh.aria': 'Source code on GitHub, opens in a new tab',
+
+    /* — надзаголовки разделов — */
+    'eyebrow.live': '01 — On-chain',
+    'eyebrow.mech': '02 — Mechanics',
+    'eyebrow.imm': '03 — Immutability',
+    'eyebrow.buy': '04 — Buy',
+    'eyebrow.contracts': '05 — Contracts',
+    'eyebrow.risks': '06 — Risks',
+    'eyebrow.links': '07 — Verify',
+
+    /* — панель продажи — */
+    'sale.h': 'Bonding curve sale',
+    'sale.price': 'Spot price',
+    'sale.sold': 'Inventory sold',
+    'sale.remaining': 'Remaining inventory',
+    'sale.reserve': 'Curve reserve',
+    'sale.epoch': 'Emission epoch',
+    'sale.cta': 'Open the buy panel',
+    'sale.foot': 'Read from the contracts on every page load, not written into the markup.',
+    'sale.epochDone': 'complete',
+    'sale.epochOf': '{n} / 26',
+
+    /* — контракты — */
+    'contracts.h2': 'Contract addresses',
+    'contracts.lede': 'All four contracts are deployed and verified on the explorer. Copy an address from here and compare it with the one your wallet shows before you sign anything.',
+    'contracts.footnote': 'Verification means the explorer matched the deployed bytecode against the source. An unverified contract is an unchecked contract, whatever a website says about it.',
+    'contract.desc.token': 'ERC-20 · fixed supply, no mint function',
+    'contract.desc.emission': 'Epoch table, staking, locks',
+    'contract.desc.curve': 'Sale and buy-back',
+    'contract.desc.vesting': 'Treasury under a time lock',
+    'contract.pending': 'address not set',
+    'contract.copy': 'Copy',
+    'contract.explorer': 'Explorer',
+
     /* — hero — */
+    'hero.badge': 'Live on Robinhood Chain · chain ID 4663',
+    'hero.cta.buy': 'Buy through the curve',
+    'hero.cta.verify': 'Verify on-chain',
     'hero.title': 'Supply is <span class="mono">e</span>. Emission is <span class="mono">1/n!</span>.',
     'hero.lede': 'An ERC-20 whose issuance schedule is not a team decision but the partial sums of a series. Total supply equals the number <span class="mono">e</span> to 18 decimal places. Emission decays factorially and terminates on its own: not on a roadmap date, but at the epoch where the next term of the series first falls below one base unit of the token.',
     'hero.why': '<strong>Why “Maclaurin”.</strong> A Maclaurin series is a Taylor series expanded at zero. The expansion <span class="mono">e<sup>x</sup> = Σ x<sup>n</sup>/n!</span> used here is built around the point <span class="mono">x = 0</span> and taken at <span class="mono">x = 1</span>, which yields <span class="mono">e = Σ 1/n!</span>. The expansion point is not arbitrary, it is zero — so this is a Maclaurin series, and the project name describes the mechanism literally rather than by analogy.',
@@ -277,7 +327,7 @@ const I18N = {
     'buy.rule.fee': '<strong>A flat 1% fee in ETH</strong> — a constant, not a variable. It is taken before the reserve is credited on a buy, and out of the already-reduced amount on a sell, so the reserve never funds the fee.',
     'buy.rule.buyback': '<strong>The curve is not an exchange: you can only sell back to it what you bought from it.</strong> The purchase right is tied to the address (<code>boughtOf(address)</code>) and does not travel with an ordinary transfer. Otherwise a holder of free genesis tokens or staking rewards would walk off with the buyers\' ETH. Tokens acquired anywhere other than the curve are sold on a secondary market, not here.',
     'buy.rule.nodiscretion': '<strong>Nothing in the sell path depends on anyone\'s decision:</strong> only your balance, your own slippage protection and a deadline that has not expired. No pauses, no lists, no cooldown.',
-    'buy.rule.antisnipe': '<strong>An anti-snipe window covers the first hour after launch</strong>, capping purchases at 10 000 000 tokens per address. It is a mitigation, not a defence: the cap is trivially bypassed with several wallets — it only stops a single transaction in the first block from taking a meaningful share of the inventory.',
+    'buy.rule.antisnipe': '<strong>The anti-snipe window has already expired.</strong> It capped purchases at 10 000 000 tokens per address for the first hour after the curve was deployed (<code>antiSnipeEnd()</code> — check it on-chain). That hour is over and no purchase was made during it, so the cap applies to nothing: right now a single transaction can buy the entire remaining inventory. The cap was a mitigation rather than a defence in any case — several wallets bypass it trivially.',
     'buy.addr.h': 'Curve contract address',
     'buy.addr.hint': 'Check it against the address shown in your wallet before you confirm the transaction. No other address is the sale contract.',
     'buy.addr.copy': 'Copy',
@@ -288,6 +338,9 @@ const I18N = {
     'buy.field.deadline': 'Deadline, minutes',
     'buy.action.quote': 'Get quote',
     'buy.action.buy': 'Buy',
+    'buy.quick.max': 'Max',
+    'buy.quick.maxHint': 'Fill in maxEthIn() — the largest purchase the remaining inventory allows at this moment',
+    'buy.quick.maxFailed': 'Could not read maxEthIn(): {reason}',
     'buy.sig.summary': 'What the wallet actually signs',
     'buy.sig.p': 'The call is <code>buy(uint256 minTokensOut, uint256 deadline)</code>, with the amount passed as the transaction\'s <span class="mono">value</span>. <span class="mono">minTokensOut</span> is derived from the <code>previewBuy(ethIn)</code> quote minus the slippage you set: if the price moves further than that between quoting and execution, the transaction reverts instead of filling at a worse price. Overpaying beyond the remaining inventory is not refunded as change — it reverts — which is why <code>maxEthIn()</code> exists, the exact upper bound at this moment.',
     'buy.sell.summary': 'How to sell back to the curve',
@@ -297,7 +350,7 @@ const I18N = {
     'buy.sell.p2': 'Both calls are available in the explorer\'s <em>Write contract</em> tab, which also shows the function body. <code>boughtOf(your address)</code> shows how many tokens the curve is obliged to buy back.',
 
     'nowallet.h': 'No wallet in this browser',
-    'nowallet.p1': 'The page did not find <span class="mono">window.ethereum</span>, which means no wallet extension is installed or it is disabled for this site. What you can do:',
+    'nowallet.p1': 'The page found no wallet: neither an EIP-6963 announcement nor <span class="mono">window.ethereum</span>. That means no wallet extension is installed or it is disabled for this site. What you can do:',
     'nowallet.step1': 'install any EVM wallet that supports custom networks (MetaMask or Rabby, for example) from your browser\'s official extension store;',
     'nowallet.step2': 'add the network by hand: <span class="mono">Chain ID 4663</span>, RPC <span class="mono" data-field="rpc"></span>, explorer <span class="mono" data-field="explorer"></span>;',
     'nowallet.step3': 'fund the address with a little of the network\'s gas token and come back — the connect button will appear on its own.',
@@ -307,6 +360,8 @@ const I18N = {
     'risks.h2': 'Risks. Read this before buying',
     'risks.liquidity': '<strong>Liquidity is thin and the price is volatile.</strong> Selling the entire inventory collects roughly 3.72 ETH into the reserve — that is the order of magnitude of the whole mechanism, not the size of a market. Any sizeable trade moves the price noticeably in either direction. This is a working demonstration of a full cycle, not a deep market.',
     'risks.notExchange': '<strong>The curve is not an exchange.</strong> It buys back only what was bought from it, and only from the address that bought it. Tokens obtained by any other route cannot be sold to the curve. There may be no secondary market at all.',
+    'risks.exitPrice': '<strong>The curve buys back at its current price, not at the price you paid.</strong> The reserve always covers every outstanding buy-back, so <code>sell()</code> can never fail for lack of funds — but the amount of ETH it returns depends on how much has been sold at that moment, not on your entry. If other buyers exit before you do, the price falls back along the curve and you receive less than you put in — in the worst case (you bought at the top of the inventory, everyone else sold first) about 63% less, which is the factor <span class="mono">e</span> the price spans. This is a first-in-best-out mechanism, not a refund.',
+    'risks.concentration': '<strong>The whole inventory costs about 3.76 ETH, and one address can take all of it.</strong> That is small enough that a single actor can buy the entire billion-token inventory in one transaction, stake it, collect essentially the whole 718 281 828-token emission pool — rewards are split by weight, and their weight would be the divisor — then sell the inventory back to the curve at the same average price and recover the ETH. The round trip costs only the two 1% fees. Nothing in the contracts prevents this, and staking alongside such a position yields a proportionally negligible share.',
     'risks.experimental': '<strong>The project is experimental.</strong> The contracts are immutable: a bug cannot be patched and there is no upgrade path. That is at once the principal guarantee and the principal risk.',
     'risks.audit': '<strong>An audit is not insurance.</strong> Tests, static analysis and independent review lower the probability of a bug but do not prove its absence. Only some of the properties are formally proven.',
     'risks.noYield': '<strong>The token has no yield and owes you nothing.</strong> Staking rewards are a redistribution of a pre-issued emission pool, not profit from any activity. Nobody promises price appreciation and nobody can deliver it.',
@@ -390,7 +445,10 @@ const I18N = {
     'grid.audit': 'Audit reports',
     'grid.specToken': 'Token specification',
     'grid.specCurve': 'Curve specification',
+    'grid.telegram': 'Telegram channel',
+    'grid.x': 'X profile',
     'grid.missing': 'link not set — to be filled in after deployment',
+    'footer.tagline': 'Supply is e. Emission is 1/n!.',
 
     /* — команды проверки — */
     'verify.c1a': '# 1. Download the deployed bytecode and grep it for privileged-function selectors.',
@@ -401,10 +459,26 @@ const I18N = {
     'verify.c5': '# 5. The staking multiplier never reaches e at any radius.',
     'verify.c6': '# 6. From the first coin to the last, the price rises by exactly a factor of e.',
 
+    /* — выбор кошелька (EIP-6963) — */
+    'wm.title': 'Choose a wallet',
+    'wm.subtitle': 'Wallets that announced themselves to this page (EIP-6963).',
+    'wm.close': 'Close',
+    'wm.none.h': 'No wallet detected',
+    'wm.none.p': 'Nothing answered the EIP-6963 request and there is no window.ethereum in this browser. Install an EVM wallet extension, or open this page inside your wallet\'s built-in browser on mobile.',
+    'wm.foot': 'The page never sees your keys. Connecting only shares your address; every transaction is signed in the wallet itself.',
+    'wm.tag.legacy': 'legacy',
+    'wm.tag.last': 'last used',
+    'wm.connecting': 'Connecting to {name}…',
+    'wm.legacyName': 'Browser wallet',
+    'wm.legacyRdns': 'window.ethereum — no EIP-6963 announcement',
+
     /* — кошелёк — */
     'wallet.none': 'Wallet not connected',
     'wallet.noExt': 'No wallet extension detected',
     'wallet.connected': '{addr} · chain {chain}',
+    'wallet.named': '{name} · {addr} · chain {chain}',
+    'wallet.disconnect': 'Disconnect',
+    'wallet.forgotten': 'The page has forgotten the connection. Your wallet still lists this site among its connected sites — remove it there for a full disconnect.',
     'wallet.buyback': ' · buy-back right: {amount} {sym}',
     'wallet.notFound': 'No wallet found in this browser — instructions below.',
     'wallet.confirm': 'Confirm the connection in your wallet…',
@@ -479,7 +553,49 @@ const I18N = {
     'lang.en.aria': 'Переключить страницу на английский',
     'lang.ru.aria': 'Переключить страницу на русский',
 
+    'nav.contracts': 'Контракты',
+
+    'social.tg.aria': 'Телеграм-канал, откроется в новой вкладке',
+    'social.x.aria': 'Профиль в X, откроется в новой вкладке',
+    'social.gh.aria': 'Исходный код на GitHub, откроется в новой вкладке',
+
+    /* — надзаголовки разделов — */
+    'eyebrow.live': '01 — Цепочка',
+    'eyebrow.mech': '02 — Механика',
+    'eyebrow.imm': '03 — Неизменяемость',
+    'eyebrow.buy': '04 — Покупка',
+    'eyebrow.contracts': '05 — Контракты',
+    'eyebrow.risks': '06 — Риски',
+    'eyebrow.links': '07 — Проверка',
+
+    /* — панель продажи — */
+    'sale.h': 'Продажа через кривую',
+    'sale.price': 'Текущая цена',
+    'sale.sold': 'Инвентарь распродан',
+    'sale.remaining': 'Остаток инвентаря',
+    'sale.reserve': 'Резерв кривой',
+    'sale.epoch': 'Эпоха эмиссии',
+    'sale.cta': 'К панели покупки',
+    'sale.foot': 'Читается из контрактов при каждой загрузке, а не вписано в вёрстку.',
+    'sale.epochDone': 'завершена',
+    'sale.epochOf': '{n} / 26',
+
+    /* — контракты — */
+    'contracts.h2': 'Адреса контрактов',
+    'contracts.lede': 'Все четыре контракта развёрнуты и верифицированы в эксплорере. Скопируйте адрес отсюда и сверьте с тем, что показывает кошелёк, прежде чем что-либо подписывать.',
+    'contracts.footnote': 'Верификация означает, что эксплорер сверил развёрнутый байткод с исходником. Неверифицированный контракт — непроверенный контракт, что бы ни было написано на сайте.',
+    'contract.desc.token': 'ERC-20 · фиксированный сапплай, функции mint нет',
+    'contract.desc.emission': 'Таблица эпох, стейкинг, локи',
+    'contract.desc.curve': 'Продажа и обратный выкуп',
+    'contract.desc.vesting': 'Казна под временным замком',
+    'contract.pending': 'адрес не задан',
+    'contract.copy': 'Копировать',
+    'contract.explorer': 'Эксплорер',
+
     /* — hero — */
+    'hero.badge': 'В мейннете Robinhood Chain · chain ID 4663',
+    'hero.cta.buy': 'Купить через кривую',
+    'hero.cta.verify': 'Проверить на цепочке',
     'hero.title': 'Сапплай равен <span class="mono">e</span>. Эмиссия равна <span class="mono">1/n!</span>.',
     'hero.lede': 'ERC-20, у которого график выпуска — не решение команды, а частичные суммы ряда. Общий сапплай равен числу <span class="mono">e</span> с точностью до 18 знаков после запятой. Эмиссия затухает факториально и заканчивается сама: не на дате из дорожной карты, а на эпохе, где очередной член ряда впервые оказывается меньше одной базовой единицы токена.',
     'hero.why': '<strong>Почему «Маклорен».</strong> Ряд Маклорена — это ряд Тейлора, разложенный в нуле. Наше разложение <span class="mono">e<sup>x</sup> = Σ x<sup>n</sup>/n!</span> построено вокруг точки <span class="mono">x = 0</span> и взято при <span class="mono">x = 1</span>, что и даёт <span class="mono">e = Σ 1/n!</span>. Точка разложения здесь не произвольная, а нулевая — значит, это ряд Маклорена, а название проекта описывает механику буквально, а не по мотивам.',
@@ -580,7 +696,7 @@ const I18N = {
     'buy.rule.fee': '<strong>Комиссия 1% в ETH</strong> — константа, не переменная. Берётся до зачисления в резерв при покупке и из уже вычтенной суммы при продаже, поэтому резерв никогда не финансирует комиссию.',
     'buy.rule.buyback': '<strong>Кривая — не биржа: продать ей можно ровно то, что у неё куплено.</strong> Право выкупа именное (<code>boughtOf(адрес)</code>) и не переносится обычным трансфером. Иначе держатель бесплатных токенов из genesis или наград стейкинга забрал бы ETH покупателей. Токены, купленные не у кривой, продаются на вторичном рынке, а не сюда.',
     'buy.rule.nodiscretion': '<strong>У продажи нет ни одного условия, зависящего от чьего-либо решения:</strong> только баланс, собственная защита от проскальзывания и не истёкший дедлайн. Ни пауз, ни списков, ни кулдауна.',
-    'buy.rule.antisnipe': '<strong>Первый час после старта</strong> действует лимит 10 000 000 токенов на адрес. Это смягчение, а не защита: лимит обходится несколькими кошельками — он лишь не даёт выкупить существенную долю инвентаря одной транзакцией в первом блоке.',
+    'buy.rule.antisnipe': '<strong>Окно анти-снайпа уже истекло.</strong> Лимит 10 000 000 токенов на адрес действовал первый час после развёртывания кривой (<code>antiSnipeEnd()</code> — проверяется на цепочке). Этот час прошёл, и ни одной покупки в нём не было, то есть лимит не применился ни разу: прямо сейчас одна транзакция может выкупить весь остаток инвентаря. Смягчением, а не защитой, он был и до этого — обходится несколькими кошельками.',
     'buy.addr.h': 'Адрес контракта кривой',
     'buy.addr.hint': 'Сверьте его с адресом в кошельке перед подтверждением транзакции. Ни один другой адрес не является контрактом продажи.',
     'buy.addr.copy': 'Скопировать',
@@ -591,6 +707,9 @@ const I18N = {
     'buy.field.deadline': 'Дедлайн, минут',
     'buy.action.quote': 'Рассчитать',
     'buy.action.buy': 'Купить',
+    'buy.quick.max': 'Максимум',
+    'buy.quick.maxHint': 'Подставить maxEthIn() — самую крупную покупку, которую позволяет остаток инвентаря прямо сейчас',
+    'buy.quick.maxFailed': 'Не удалось прочитать maxEthIn(): {reason}',
     'buy.sig.summary': 'Что именно подписывает кошелёк',
     'buy.sig.p': 'Вызывается <code>buy(uint256 minTokensOut, uint256 deadline)</code>, сумма передаётся как <span class="mono">value</span> транзакции. <span class="mono">minTokensOut</span> считается из котировки <code>previewBuy(ethIn)</code> с вычетом заданного проскальзывания: если между расчётом и исполнением цена уйдёт дальше, транзакция откатится, а не исполнится по худшей цене. Переплата сверх остатка инвентаря не возвращается сдачей, а ревертит — поэтому есть <code>maxEthIn()</code>, точная верхняя граница на текущий момент.',
     'buy.sell.summary': 'Как продать обратно кривой',
@@ -600,7 +719,7 @@ const I18N = {
     'buy.sell.p2': 'Оба вызова доступны во вкладке <em>Write contract</em> эксплорера — там же видно тело функции. <code>boughtOf(ваш адрес)</code> показывает, сколько токенов кривая обязана выкупить обратно.',
 
     'nowallet.h': 'Кошелька в браузере нет',
-    'nowallet.p1': 'Страница не нашла <span class="mono">window.ethereum</span> — значит, расширение-кошелёк не установлено или отключено для этого сайта. Что можно сделать:',
+    'nowallet.p1': 'Страница не нашла ни одного кошелька: ни объявления по EIP-6963, ни <span class="mono">window.ethereum</span>. Значит, расширение-кошелёк не установлено или отключено для этого сайта. Что можно сделать:',
     'nowallet.step1': 'установить любой EVM-кошелёк с поддержкой произвольных сетей (например, MetaMask или Rabby) из официального магазина расширений браузера;',
     'nowallet.step2': 'добавить сеть вручную: <span class="mono">Chain ID 4663</span>, RPC <span class="mono" data-field="rpc"></span>, эксплорер <span class="mono" data-field="explorer"></span>;',
     'nowallet.step3': 'завести на адрес немного газового токена сети и вернуться сюда — кнопка подключения появится сама.',
@@ -610,6 +729,8 @@ const I18N = {
     'risks.h2': 'Риски. Прочитайте до покупки',
     'risks.liquidity': '<strong>Ликвидность мала, цена волатильна.</strong> Полная распродажа инвентаря собирает в резерв около 3.72 ETH — это порядок величины всего механизма, а не размер рынка. Любая заметная сделка ощутимо сдвигает цену в обе стороны. Это работающая демонстрация полного цикла, а не глубокий рынок.',
     'risks.notExchange': '<strong>Кривая — не биржа.</strong> Она выкупает обратно только то, что у неё куплено, и только у того адреса, который покупал. Токены, полученные любым другим путём, кривой не продаются. Вторичного рынка может не быть вообще.',
+    'risks.exitPrice': '<strong>Кривая выкупает по своей текущей цене, а не по той, по которой вы купили.</strong> Резерв всегда покрывает все непогашенные права выкупа, поэтому <code>sell()</code> не может отказать из-за нехватки денег — но сколько ETH он вернёт, зависит от того, сколько продано на этот момент, а не от вашей точки входа. Если другие покупатели выйдут раньше вас, цена скатится обратно по кривой и вы получите меньше, чем вложили: в худшем случае (вы купили на вершине инвентаря, все остальные продали первыми) примерно на 63% меньше — это и есть множитель <span class="mono">e</span>, на который расходится цена. Это механизм «кто первый вышел, тот и в плюсе», а не возврат денег.',
+    'risks.concentration': '<strong>Весь инвентарь стоит около 3.76 ETH, и один адрес может забрать его целиком.</strong> Это достаточно мало, чтобы один участник выкупил весь миллиард токенов одной транзакцией, застейкал его, собрал практически весь пул эмиссии в 718 281 828 токенов — награда делится по весу, а его вес и будет делителем — а потом продал инвентарь обратно кривой по той же средней цене и вернул ETH. Круг обходится только двумя комиссиями по 1%. В контрактах нет ничего, что этому мешает, а стейкинг рядом с такой позицией даёт пропорционально ничтожную долю.',
     'risks.experimental': '<strong>Проект экспериментальный.</strong> Контракты неизменяемы: ошибку нельзя исправить патчем, апгрейда не существует. Это одновременно и главная гарантия, и главный риск.',
     'risks.audit': '<strong>Аудит не является страховкой.</strong> Тесты, статический анализ и независимое ревью снижают вероятность ошибки, но не доказывают её отсутствие. Формально доказана только часть свойств.',
     'risks.noYield': '<strong>У токена нет доходности и нет обязательств перед вами.</strong> Награды стейкинга — это перераспределение заранее выпущенного пула эмиссии, а не прибыль от какой-либо деятельности. Никто не обещает роста цены и не может его обеспечить.',
@@ -693,7 +814,10 @@ const I18N = {
     'grid.audit': 'Отчёты аудита',
     'grid.specToken': 'Спецификация токена',
     'grid.specCurve': 'Спецификация кривой',
+    'grid.telegram': 'Телеграм-канал',
+    'grid.x': 'Профиль в X',
     'grid.missing': 'ссылка не задана — заполнить после деплоя',
+    'footer.tagline': 'Сапплай равен e. Эмиссия равна 1/n!.',
 
     /* — команды проверки — */
     'verify.c1a': '# 1. Скачать развёрнутый байткод и поискать в нём селекторы полномочий.',
@@ -704,10 +828,26 @@ const I18N = {
     'verify.c5': '# 5. Множитель стейкинга не достигает e ни при каком радиусе.',
     'verify.c6': '# 6. Цена от первой до последней монеты растёт ровно в e раз.',
 
+    /* — выбор кошелька (EIP-6963) — */
+    'wm.title': 'Выберите кошелёк',
+    'wm.subtitle': 'Кошельки, которые сами объявились этой странице (EIP-6963).',
+    'wm.close': 'Закрыть',
+    'wm.none.h': 'Кошелёк не обнаружен',
+    'wm.none.p': 'На запрос EIP-6963 никто не ответил, и window.ethereum в этом браузере нет. Установите расширение-кошелёк для EVM или откройте страницу во встроенном браузере кошелька на телефоне.',
+    'wm.foot': 'Ключи страница не видит. Подключение передаёт только адрес; каждую транзакцию подписывает сам кошелёк.',
+    'wm.tag.legacy': 'legacy',
+    'wm.tag.last': 'последний',
+    'wm.connecting': 'Подключаемся к {name}…',
+    'wm.legacyName': 'Кошелёк в браузере',
+    'wm.legacyRdns': 'window.ethereum — без объявления по EIP-6963',
+
     /* — кошелёк — */
     'wallet.none': 'Кошелёк не подключён',
     'wallet.noExt': 'Расширение-кошелёк не обнаружено',
     'wallet.connected': '{addr} · сеть {chain}',
+    'wallet.named': '{name} · {addr} · сеть {chain}',
+    'wallet.disconnect': 'Отключить',
+    'wallet.forgotten': 'Страница забыла подключение. В самом кошельке сайт остаётся в списке подключённых — уберите его там, если нужно отключиться полностью.',
     'wallet.buyback': ' · право обратного выкупа: {amount} {sym}',
     'wallet.notFound': 'Кошелёк в браузере не найден — инструкция ниже.',
     'wallet.confirm': 'Подтвердите подключение в кошельке…',
@@ -1232,6 +1372,10 @@ function renderChain() {
   const ch = view.chain;
   if (!ch) return;
 
+  // Панель продажи живёт из тех же данных, что и карточки, — считаем её
+  // первой, чтобы ранние выходы ниже не оставили её с прошлыми числами.
+  renderSale();
+
   if (ch.kind === 'noAddresses') {
     pendingCards(t('card.na.address'));
     setStatus('status.noAddresses', null, 'error');
@@ -1454,6 +1598,18 @@ function renderAddresses() {
   $$('[data-field="currency"]').forEach((el) => { el.textContent = CONFIG.chain.currency.symbol; });
   $$('[data-field="rpc"]').forEach((el) => { el.textContent = rpcList()[0] || ''; });
   $$('[data-field="explorer"]').forEach((el) => { el.textContent = CONFIG.chain.explorer; });
+
+  // Соцсети и хэндл — из CONFIG.links, чтобы адрес канала правился в одном
+  // месте, а не в шести ссылках разметки.
+  const social = [['#social-tg', CONFIG.links.telegram], ['#social-x', CONFIG.links.x], ['#social-gh', CONFIG.links.repo]];
+  social.forEach(([sel, href]) => { const el = $(sel); if (el && href) el.href = href; });
+  $$('a.social-pill').forEach((a) => {
+    const svg = a.querySelector('use');
+    const id = svg ? svg.getAttribute('href') : '';
+    const href = id === '#i-tg' ? CONFIG.links.telegram : id === '#i-x' ? CONFIG.links.x : CONFIG.links.repo;
+    if (href) a.href = href;
+  });
+  $$('.social-pill .handle').forEach((el) => { el.textContent = CONFIG.handle; });
 }
 
 function renderVerifyCommands() {
@@ -1517,7 +1673,9 @@ function renderLinkGrid() {
     [t('grid.repo'), CONFIG.links.repo, (u) => u],
     [t('grid.audit'), CONFIG.links.audit, (u) => u],
     [t('grid.specToken'), CONFIG.links.specToken, (u) => u],
-    [t('grid.specCurve'), CONFIG.links.specCurve, (u) => u]
+    [t('grid.specCurve'), CONFIG.links.specCurve, (u) => u],
+    [t('grid.telegram'), CONFIG.links.telegram, (u) => u],
+    [t('grid.x'), CONFIG.links.x, (u) => u]
   ];
 
   items.forEach(([title, target, hrefOf]) => {
@@ -1529,7 +1687,11 @@ function renderLinkGrid() {
       a.className = 'link-title';
       const sub = document.createElement('span');
       sub.className = 'link-sub';
-      sub.textContent = isSet(target) ? target : new URL(target).host;
+      // Для ссылки показываем host + путь без хвостового слэша: «t.me» само по
+      // себе ничего не говорит, а «t.me/MaclaurinRHC» — говорит.
+      sub.textContent = isSet(target)
+        ? target
+        : (new URL(target).host + new URL(target).pathname).replace(/\/$/, '');
       card.append(a, sub);
     } else {
       card.classList.add('is-missing');
@@ -1551,6 +1713,141 @@ function renderChainBanner() {
   if (!anyMissing) { b.hidden = true; return; }
   b.hidden = false;
   b.textContent = t('chain.banner');
+}
+
+/* ── список контрактов ─────────────────────────────────────────────────── *
+   Четыре адреса в одном месте, каждый с копированием и ссылкой на
+   верифицированный исходник. Адреса берутся из CONFIG, а не из вёрстки:
+   править их надо в одной строке, а не в четырёх местах разметки. */
+
+const CONTRACT_ROWS = [
+  ['token',    'grid.token',    'contract.desc.token'],
+  ['emission', 'grid.emission', 'contract.desc.emission'],
+  ['curve',    'grid.curve',    'contract.desc.curve'],
+  ['vesting',  'grid.vesting',  'contract.desc.vesting']
+];
+
+function renderContracts() {
+  const box = $('#contract-list');
+  if (!box) return;
+  box.textContent = '';
+
+  CONTRACT_ROWS.forEach(([key, nameKey, descKey]) => {
+    const addr = CONFIG.contracts[key];
+
+    const row = document.createElement('div');
+    row.className = 'contract-row';
+
+    const name = document.createElement('div');
+    name.className = 'contract-name';
+    const n = document.createElement('span'); n.className = 'n'; n.textContent = t(nameKey);
+    const d = document.createElement('span'); d.className = 'd'; d.textContent = t(descKey);
+    name.append(n, d);
+
+    const code = document.createElement('code');
+    code.className = 'contract-addr';
+    code.id = 'addr-' + key;
+    code.textContent = isSet(addr) ? addr : t('contract.pending');
+
+    const acts = document.createElement('div');
+    acts.className = 'contract-acts';
+    if (isSet(addr)) {
+      const copy = document.createElement('button');
+      copy.type = 'button';
+      copy.className = 'btn btn-ghost';
+      copy.dataset.copyTarget = code.id;
+      copy.textContent = t('contract.copy');
+      const link = linkEl(t('contract.explorer'), key === 'token' ? ex.token(addr) : ex.code(addr));
+      link.className = 'btn btn-ghost';
+      acts.append(copy, link);
+    }
+
+    row.append(name, code, acts);
+    box.appendChild(row);
+  });
+}
+
+/* ── панель продажи в hero ─────────────────────────────────────────────── *
+   Тот же приём, что и в карточках: если данных нет, стоит прочерк, а не ноль.
+   Ноль в поле «остаток инвентаря» читался бы как «всё распродано». */
+
+function setLiveDot(kind) {
+  const dot = $('#live-dot');
+  if (!dot) return;
+  dot.className = 'dot' + (kind ? ' is-' + kind : '');
+}
+
+function setProgress(pct) {
+  const bar = $('#sale-progress');
+  const fill = $('#sale-progress-fill');
+  if (!bar || !fill) return;
+  if (pct === null) {
+    fill.style.width = '0%';
+    bar.removeAttribute('aria-valuenow');
+    return;
+  }
+  const clamped = Math.max(0, Math.min(100, pct));
+  fill.style.width = clamped + '%';
+  bar.setAttribute('aria-valuenow', clamped.toFixed(2));
+}
+
+function renderSale() {
+  const set = (sel, text) => { const el = $(sel); if (el) el.textContent = text; };
+  const DASH = '—';
+
+  const chainEl = $('#sale-chain');
+  if (chainEl) chainEl.textContent = 'chain ' + CONFIG.chain.id;
+
+  const ch = view.chain;
+  if (!ch || ch.kind !== 'data') {
+    ['#sale-price-value', '#sale-progress-pct', '#sale-remaining', '#sale-reserve', '#sale-epoch']
+      .forEach((s) => set(s, DASH));
+    set('#sale-price-unit', '');
+    setProgress(null);
+    setLiveDot(ch && (ch.kind === 'allDown' || ch.kind === 'noAddresses') ? 'down' : null);
+    return;
+  }
+
+  const r = ch.r;
+  const dec = CONFIG.token.decimals;
+  const sym = CONFIG.token.symbol;
+  const gas = CONFIG.chain.currency.symbol;
+
+  if (r.spotPrice && r.spotPrice.ok) {
+    set('#sale-price-value', formatUnits(uint(r.spotPrice.value), 9));
+    set('#sale-price-unit', 'gwei / ' + sym);
+  } else {
+    set('#sale-price-value', DASH);
+    set('#sale-price-unit', '');
+  }
+
+  if (r.sold && r.sold.ok && r.inventory && r.inventory.ok) {
+    const sold = uint(r.sold.value);
+    const inv  = uint(r.inventory.value);
+    // Проценты считаем в целых числах и делим один раз в конце: у BigInt нет
+    // дробей, а Number(sold)/Number(inv) на таких величинах уже теряет точность.
+    const ppm = inv > 0n ? Number((sold * 1000000n) / inv) / 10000 : 0;
+    set('#sale-progress-pct', ppm.toFixed(4) + '%');
+    setProgress(ppm);
+    set('#sale-remaining', formatUnits(inv - sold, dec, 0) + ' ' + sym);
+  } else {
+    set('#sale-progress-pct', DASH);
+    setProgress(null);
+    set('#sale-remaining', DASH);
+  }
+
+  set('#sale-reserve', r.reserve && r.reserve.ok
+    ? formatUnits(uint(r.reserve.value), 18, 9) + ' ' + gas
+    : DASH);
+
+  if (r.currentEpoch && r.currentEpoch.ok) {
+    const n = uint(r.currentEpoch.value);
+    set('#sale-epoch', n > 26n ? t('sale.epochDone') : t('sale.epochOf', { n }));
+  } else {
+    set('#sale-epoch', DASH);
+  }
+
+  setLiveDot(ch.stale || ch.failed > 0 ? 'down' : 'live');
 }
 
 /* ── кошелёк ───────────────────────────────────────────────────────────── */
@@ -1582,26 +1879,299 @@ function buyMsgText(text, kind = '') {
   renderBuyMsg();
 }
 
-function renderWallet() {
-  const el = $('#wallet-state');
-  if (!el) return;
-  const w = view.wallet;
-  if (!w || !w.account) { el.textContent = t((w && w.key) || 'wallet.none'); return; }
-  let s = t('wallet.connected', { addr: shortAddr(w.account), chain: CONFIG.chain.id });
-  if (w.bought !== null && w.bought !== undefined) {
-    s += t('wallet.buyback', { amount: formatUnits(w.bought, CONFIG.token.decimals, 6), sym: CONFIG.token.symbol });
-  }
-  el.textContent = s;
+/* ─────────────────────────────────────────────────────────────────────────
+ *  ВЫБОР КОШЕЛЬКА — EIP-6963 (Multi Injected Provider Discovery).
+ *
+ *  Почему не просто window.ethereum. Этот объект один, а расширений в браузере
+ *  может стоять несколько: они дерутся за него при внедрении, и выигрывает то,
+ *  которое отработало последним. Пользователь жмёт «подключить», а окно
+ *  открывает не тот кошелёк, который он имел в виду. Хуже того, кошельки
+ *  научились выставлять чужие флаги (isMetaMask ставит себе далеко не только
+ *  MetaMask), так что и опознать победителя по объекту нельзя.
+ *
+ *  EIP-6963 переворачивает схему: страница бросает событие
+ *  eip6963:requestProvider, а каждое расширение отвечает своим
+ *  eip6963:announceProvider с парой {info, provider}. Мы собираем все ответы и
+ *  даём выбрать явно. Слушатель ставится ДО запроса — расширение, успевшее
+ *  объявиться раньше нас, иначе потеряется.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+const LS_WALLET = 'maclrn.wallet';
+
+const wallet = {
+  found: new Map(),   // rdns → { info, provider, legacy }
+  active: null,       // выбранная запись
+  busy: false
+};
+
+const boundProviders = new WeakSet();   // чтобы не навесить обработчики дважды
+let autoTried = false;
+
+/* Иконка приходит из расширения — это чужой ввод, а не наш файл. EIP-6963
+   требует именно data-URI; всё остальное (http, blob:, javascript:) отклоняем.
+   Внешний URL здесь — это ещё и утечка: узел на том конце узнал бы, что
+   пользователь открыл эту страницу. */
+const SAFE_ICON = /^data:image\/(png|jpeg|jpg|gif|webp|svg\+xml);/i;
+
+function activeProvider() { return wallet.active ? wallet.active.provider : null; }
+
+function announceHandler(event) {
+  const d = event && event.detail;
+  if (!d || !d.provider || !d.info) return;
+  const rdns = typeof d.info.rdns === 'string' ? d.info.rdns : '';
+  if (!rdns || wallet.found.has(rdns)) return;
+  wallet.found.set(rdns, { info: d.info, provider: d.provider, legacy: false });
+  onWalletsChanged();
 }
 
-function hasWallet() { return typeof window !== 'undefined' && typeof window.ethereum !== 'undefined'; }
+function discoverWallets() {
+  window.addEventListener('eip6963:announceProvider', announceHandler);
+  window.dispatchEvent(new Event('eip6963:requestProvider'));
+}
 
-async function ensureChain() {
-  const current = await window.ethereum.request({ method: 'eth_chainId' });
+/* Флаги, которыми кошельки метили window.ethereum до EIP-6963. Это эвристика,
+   а не стандарт: Rabby стоит перед MetaMask потому, что сам выставляет
+   isMetaMask ради совместимости. Такие записи помечаются в списке как legacy —
+   догадку не стоит выдавать за факт. */
+const LEGACY_FLAGS = [
+  ['isRabby', 'Rabby'],
+  ['isMetaMask', 'MetaMask'],
+  ['isCoinbaseWallet', 'Coinbase Wallet'],
+  ['isBraveWallet', 'Brave Wallet'],
+  ['isTrust', 'Trust Wallet'],
+  ['isOkxWallet', 'OKX Wallet'],
+  ['isPhantom', 'Phantom']
+];
+
+function legacyName(p) {
+  for (let i = 0; i < LEGACY_FLAGS.length; i++) {
+    if (p && p[LEGACY_FLAGS[i][0]]) return LEGACY_FLAGS[i][1];
+  }
+  return null;
+}
+
+/** Запасной путь через window.ethereum — только если никто не объявился. */
+function legacyEntries() {
+  const eth = typeof window !== 'undefined' ? window.ethereum : null;
+  if (!eth) return [];
+  const list = Array.isArray(eth.providers) && eth.providers.length ? eth.providers : [eth];
+  return list.map((p, i) => ({
+    info: { uuid: 'legacy-' + i, rdns: 'legacy:' + i, name: legacyName(p) || t('wm.legacyName'), icon: '' },
+    provider: p,
+    legacy: true
+  }));
+}
+
+function walletChoices() {
+  if (wallet.found.size > 0) return Array.from(wallet.found.values());
+  return legacyEntries();
+}
+
+function hasWallet() { return walletChoices().length > 0; }
+
+/* ── модалка выбора ────────────────────────────────────────────────────── */
+
+/** Строка состояния внутри окна выбора: kind='note' — обычная, иначе ошибка. */
+function wmError(text, kind) {
+  const el = $('#wm-error');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'wm-error' + (kind === 'note' ? ' is-note' : '');
+}
+
+function walletButton(entry, last) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'wm-item';
+
+  if (typeof entry.info.icon === 'string' && SAFE_ICON.test(entry.info.icon)) {
+    const img = document.createElement('img');
+    img.className = 'wm-icon';
+    img.src = entry.info.icon;
+    img.alt = '';
+    b.appendChild(img);
+  } else {
+    const box = document.createElement('span');
+    box.className = 'wm-icon wm-icon-fallback';
+    box.textContent = String(entry.info.name || '?').trim().charAt(0).toUpperCase();
+    b.appendChild(box);
+  }
+
+  const text = document.createElement('span');
+  text.className = 'wm-text';
+  const name = document.createElement('span');
+  name.className = 'wm-name';
+  // textContent, а не innerHTML: имя приходит из расширения, это не наш текст.
+  name.textContent = entry.info.name || entry.info.rdns;
+  const rdns = document.createElement('span');
+  rdns.className = 'wm-rdns';
+  rdns.textContent = entry.legacy ? t('wm.legacyRdns') : entry.info.rdns;
+  text.append(name, rdns);
+  b.appendChild(text);
+
+  if (entry.legacy || (last && last === entry.info.rdns)) {
+    const tag = document.createElement('span');
+    tag.className = 'wm-tag' + (entry.legacy ? '' : ' is-last');
+    tag.textContent = entry.legacy ? t('wm.tag.legacy') : t('wm.tag.last');
+    b.appendChild(tag);
+  }
+
+  b.addEventListener('click', () => connectWith(entry));
+  return b;
+}
+
+function renderWalletList() {
+  const list = $('#wm-list');
+  const empty = $('#wm-empty');
+  if (!list) return;
+
+  const choices = walletChoices();
+  const last = lsGet(LS_WALLET);
+
+  list.textContent = '';
+  choices.forEach((entry) => list.appendChild(walletButton(entry, last)));
+  if (empty) empty.hidden = choices.length > 0;
+}
+
+function openWalletModal() {
+  const dlg = $('#wallet-modal');
+  if (!dlg) return;
+  wmError('');
+  renderWalletList();
+  // showModal даёт фокус-ловушку, закрытие по Esc и инертный фон бесплатно.
+  if (typeof dlg.showModal === 'function') { if (!dlg.open) dlg.showModal(); }
+  else dlg.setAttribute('open', '');
+}
+
+function closeWalletModal() {
+  const dlg = $('#wallet-modal');
+  if (!dlg) return;
+  if (typeof dlg.close === 'function' && dlg.open) dlg.close();
+  else dlg.removeAttribute('open');
+}
+
+/* ── подключение ───────────────────────────────────────────────────────── */
+
+async function connectWith(entry) {
+  if (wallet.busy) return;
+  wallet.busy = true;
+  $$('.wm-item').forEach((b) => { b.disabled = true; });
+  wmError('');
+
+  const label = entry.info.name || entry.info.rdns;
+  wmError(t('wm.connecting', { name: label }), 'note');
+  buyMsg('wm.connecting', { name: label });
+
+  try {
+    const accounts = await entry.provider.request({ method: 'eth_requestAccounts' });
+    const account = accounts && accounts[0] ? accounts[0] : null;
+    if (!account) throw new Error(t('wallet.noAddress'));
+
+    wallet.active = entry;
+    state.account = account;
+    bindProviderEvents(entry.provider);
+
+    await ensureChain(entry.provider);
+
+    // Запоминаем только устойчивый идентификатор из стандарта. Индекс legacy
+    // ничего не значит между перезагрузками, поэтому его не сохраняем.
+    if (!entry.legacy) lsSet(LS_WALLET, entry.info.rdns);
+
+    wmError('');
+    closeWalletModal();
+    await showWallet();
+    buyMsg(null);
+  } catch (e) {
+    wallet.active = null;
+    state.account = null;
+    view.wallet = null;
+    renderWallet();
+    renderConnectButtons();
+    wmError(walletError(e));
+    buyMsgText(walletError(e), 'error');
+  } finally {
+    wallet.busy = false;
+    $$('.wm-item').forEach((b) => { b.disabled = false; });
+  }
+}
+
+function connect() {
+  if (!hasWallet()) {
+    $('#no-wallet').hidden = false;
+    buyMsg('wallet.notFound', null, 'error');
+    return;
+  }
+  openWalletModal();
+}
+
+/** Локальный сброс. Кошелёк «отключить» снаружи нельзя — только забыть у себя. */
+function disconnectWallet() {
+  wallet.active = null;
+  state.account = null;
+  state.quote = null;
+  view.wallet = null;
+  view.quote = null;
+  lsSet(LS_WALLET, '');
+  $('#do-buy').disabled = true;
+  renderQuote();
+  renderWallet();
+  renderConnectButtons();
+  buyMsg('wallet.forgotten');
+}
+
+function bindProviderEvents(p) {
+  if (!p || typeof p.on !== 'function' || boundProviders.has(p)) return;
+  boundProviders.add(p);
+  p.on('accountsChanged', (accs) => {
+    if (activeProvider() !== p) return;                 // события чужого провайдера игнорируем
+    state.account = accs && accs[0] ? accs[0] : null;
+    if (!state.account) { disconnectWallet(); return; } // отключили сайт в кошельке
+    showWallet();
+  });
+  p.on('chainChanged', () => { if (activeProvider() === p) showWallet(); });
+}
+
+/** Тихое восстановление сессии: eth_accounts не открывает окно кошелька. */
+async function maybeAutoReconnect() {
+  if (autoTried || state.account) return;
+  const last = lsGet(LS_WALLET);
+  if (!last) return;
+  const entry = wallet.found.get(last);
+  if (!entry) return;               // мог не успеть объявиться — попробуем на следующем announce
+  autoTried = true;
+  try {
+    const accounts = await entry.provider.request({ method: 'eth_accounts' });
+    if (!accounts || !accounts[0]) return;
+    wallet.active = entry;
+    state.account = accounts[0];
+    bindProviderEvents(entry.provider);
+    await showWallet();
+  } catch (_) { /* тихо: кнопка подключения на месте */ }
+}
+
+function onWalletsChanged() {
+  const dlg = $('#wallet-modal');
+  if (dlg && dlg.open) renderWalletList();
+  if (hasWallet()) {
+    const nw = $('#no-wallet');
+    if (nw) nw.hidden = true;
+    [$('#connect'), $('#connect-header')].forEach((b) => { if (b) b.disabled = false; });
+    if (view.wallet && view.wallet.key === 'wallet.noExt') { view.wallet = null; renderWallet(); }
+  }
+  maybeAutoReconnect();
+}
+
+/* ── сеть ──────────────────────────────────────────────────────────────── */
+
+async function ensureChain(provider) {
+  const p = provider || activeProvider();
+  if (!p) throw new Error(t('buy.noWallet'));
+
+  const current = await p.request({ method: 'eth_chainId' });
   if (parseInt(current, 16) === CONFIG.chain.id) return;
 
   try {
-    await window.ethereum.request({
+    await p.request({
       method: 'wallet_switchEthereumChain',
       params: [{ chainId: CONFIG.chain.idHex }]
     });
@@ -1610,7 +2180,7 @@ async function ensureChain() {
     if (code !== 4902) throw e;
     // Сети нет в кошельке — предлагаем добавить. Параметры видны пользователю
     // в окне кошелька, и там же он их подтверждает.
-    await window.ethereum.request({
+    await p.request({
       method: 'wallet_addEthereumChain',
       params: [{
         chainId: CONFIG.chain.idHex,
@@ -1630,40 +2200,71 @@ async function ensureChain() {
     });
   }
 
-  const after = await window.ethereum.request({ method: 'eth_chainId' });
+  const after = await p.request({ method: 'eth_chainId' });
   if (parseInt(after, 16) !== CONFIG.chain.id) {
     throw new Error(t('wallet.wrongChain', { chain: CONFIG.chain.id }));
   }
 }
 
-async function connect() {
-  if (!hasWallet()) { $('#no-wallet').hidden = false; buyMsg('wallet.notFound', null, 'error'); return; }
-  try {
-    buyMsg('wallet.confirm');
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    state.account = accounts && accounts[0] ? accounts[0] : null;
-    if (!state.account) throw new Error(t('wallet.noAddress'));
-    await ensureChain();
-    await showWallet();
-    buyMsg(null);
-  } catch (e) {
-    state.account = null;
-    view.wallet = null;
-    renderWallet();
-    buyMsgText(walletError(e), 'error');
+/* ── отрисовка состояния кошелька ──────────────────────────────────────── */
+
+function renderWallet() {
+  const el = $('#wallet-state');
+  const av = $('#wallet-avatar');
+  if (!el) return;
+  const w = view.wallet;
+
+  if (av) {
+    if (w && w.icon) { av.src = w.icon; av.hidden = false; }
+    else { av.removeAttribute('src'); av.hidden = true; }
   }
+
+  if (!w || !w.account) { el.textContent = t((w && w.key) || 'wallet.none'); return; }
+
+  let s = w.name
+    ? t('wallet.named', { name: w.name, addr: shortAddr(w.account), chain: w.chainId })
+    : t('wallet.connected', { addr: shortAddr(w.account), chain: w.chainId });
+  if (w.bought !== null && w.bought !== undefined) {
+    s += t('wallet.buyback', { amount: formatUnits(w.bought, CONFIG.token.decimals, 6), sym: CONFIG.token.symbol });
+  }
+  el.textContent = s;
+}
+
+/** Кнопки «подключить» в шапке и в панели показывают адрес, когда он есть. */
+function renderConnectButtons() {
+  const connected = !!(view.wallet && view.wallet.account);
+  const dc = $('#disconnect');
+  if (dc) dc.hidden = !connected;
+  const label = connected ? shortAddr(view.wallet.account) : t('buy.connect');
+  [$('#connect'), $('#connect-header')].forEach((b) => { if (b) b.textContent = label; });
 }
 
 async function showWallet() {
-  if (!state.account) { view.wallet = null; renderWallet(); return; }
+  if (!state.account) { view.wallet = null; renderWallet(); renderConnectButtons(); return; }
+
+  const p = activeProvider();
+  let chainId = null;
+  if (p) {
+    try { chainId = parseInt(await p.request({ method: 'eth_chainId' }), 16); } catch (_) { /* не критично */ }
+  }
+
   let bought = null;
   if (isSet(CONFIG.contracts.curve)) {
     try {
       bought = uint(await ethCall(CONFIG.contracts.curve, SEL.boughtOf + argAddr(state.account)));
     } catch (_) { /* не критично для покупки */ }
   }
-  view.wallet = { account: state.account, bought };
+
+  const info = wallet.active ? wallet.active.info : null;
+  view.wallet = {
+    account: state.account,
+    name: info ? (info.name || info.rdns) : null,
+    icon: info && typeof info.icon === 'string' && SAFE_ICON.test(info.icon) ? info.icon : null,
+    chainId: Number.isFinite(chainId) ? chainId : CONFIG.chain.id,
+    bought
+  };
   renderWallet();
+  renderConnectButtons();
 }
 
 function walletError(e) {
@@ -1756,6 +2357,23 @@ function renderQuote() {
     `       ${argUint(q.deadline)}   ${t('quote.deadlineNote')}`;
 }
 
+/**
+ * «Максимум» — это не баланс кошелька, а maxEthIn(): точная верхняя граница,
+ * которую позволяет остаток инвентаря. Переплата сверх неё не возвращается
+ * сдачей, а ревертит, поэтому величину берём с цепочки, а не считаем на глаз.
+ */
+async function fillMaxAmount() {
+  const C = CONFIG.contracts.curve;
+  if (!isSet(C)) { buyMsg('quote.noCurve', null, 'error'); return; }
+  try {
+    const v = uint(await ethCall(C, SEL.maxEthIn));
+    $('#in-amount').value = formatUnits(v, CONFIG.chain.currency.decimals).replace(/\s/g, '');
+    buyMsg(null);
+  } catch (e) {
+    buyMsg('buy.quick.maxFailed', { reason: e.message || String(e) }, 'error');
+  }
+}
+
 async function quote(silent = false) {
   const C = CONFIG.contracts.curve;
   if (!isSet(C)) { buyMsg('quote.noCurve', null, 'error'); return null; }
@@ -1825,8 +2443,9 @@ async function doBuy() {
   if (!hasWallet()) { $('#no-wallet').hidden = false; buyMsg('buy.noWallet', null, 'error'); return; }
 
   try {
-    if (!state.account) await connect();
-    if (!state.account) return;
+    // Кошелёк ещё не выбран — открываем окно выбора и на этом останавливаемся.
+    // Подписывать нечего, пока неизвестно, чем подписывать.
+    if (!state.account) { connect(); return; }
     await ensureChain();
 
     // Котировка пересчитывается прямо перед отправкой: между «Рассчитать» и
@@ -1840,7 +2459,7 @@ async function doBuy() {
 
     buyMsg('buy.confirmTx');
 
-    const hash = await window.ethereum.request({
+    const hash = await activeProvider().request({
       method: 'eth_sendTransaction',
       params: [{
         from: state.account,
@@ -1865,6 +2484,7 @@ async function copyFrom(btn) {
   const target = document.getElementById(btn.dataset.copyTarget);
   if (!target) return;
   const text = target.textContent.trim().split(/\s+/)[0];
+  if (!/^0x[0-9a-fA-F]{40}$/.test(text)) return;   // копируем только адрес, а не «адрес не задан»
   try {
     await navigator.clipboard.writeText(text);
   } catch (_) {
@@ -1875,8 +2495,11 @@ async function copyFrom(btn) {
     sel.removeAllRanges();
     sel.addRange(range);
   }
+  // Кнопок с копированием несколько, и подписи у них разные — возвращаем ту,
+  // что была, а не одну общую.
+  if (!btn.dataset.label) btn.dataset.label = btn.textContent;
   btn.textContent = t('buy.addr.copied');
-  setTimeout(() => { btn.textContent = t('buy.addr.copy'); }, 1500);
+  setTimeout(() => { btn.textContent = btn.dataset.label; }, 1500);
 }
 
 /* ── применение языка ──────────────────────────────────────────────────── */
@@ -1893,6 +2516,7 @@ function applyI18n() {
   // не сеть и не пользовательский ввод.
   $$('[data-i18n-html]').forEach((el) => { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
   $$('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
+  $$('[data-i18n-title]').forEach((el) => { el.title = t(el.getAttribute('data-i18n-title')); });
 
   $$('.lang-btn').forEach((b) => {
     const on = b.dataset.lang === LANG;
@@ -1915,13 +2539,19 @@ function setLang(lang) {
   // Динамические куски — из сохранённых сырых данных, без единого запроса.
   renderChainBanner();
   renderAddresses();
+  renderContracts();
   renderVerifyCommands();
   renderLinkGrid();
   renderChain();
+  renderSale();
   renderStatus();
   renderQuote();
   renderBuyMsg();
   renderWallet();
+  // После applyI18n кнопки подключения снова подписаны «Connect wallet» —
+  // если кошелёк подключён, возвращаем на них адрес.
+  renderConnectButtons();
+  if ($('#wallet-modal') && $('#wallet-modal').open) renderWalletList();
 }
 
 /* ── инициализация ─────────────────────────────────────────────────────── */
@@ -1936,30 +2566,51 @@ function init() {
 
   renderChainBanner();
   renderAddresses();
+  renderContracts();
   renderVerifyCommands();
   renderLinkGrid();
+  renderSale();
   setStatus('status.loading');
   renderWallet();
+  renderConnectButtons();
 
   $('#refresh').addEventListener('click', () => refresh());
-  $('#connect').addEventListener('click', () => connect());
   $('#quote').addEventListener('click', () => quote());
   $('#do-buy').addEventListener('click', () => doBuy());
-  $('#copy-curve').addEventListener('click', (e) => copyFrom(e.currentTarget));
+  $('#connect').addEventListener('click', () => connect());
+  $('#connect-header').addEventListener('click', () => connect());
+  $('#disconnect').addEventListener('click', () => disconnectWallet());
+  $('#wm-close').addEventListener('click', () => closeWalletModal());
+  $('#amount-max').addEventListener('click', () => fillMaxAmount());
+  $$('.chip[data-amount]').forEach((b) => {
+    b.addEventListener('click', () => { $('#in-amount').value = b.dataset.amount; });
+  });
   $$('.lang-btn').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
 
-  if (!hasWallet()) {
+  // Копирование — делегированием: кнопок несколько, и часть из них рисуется
+  // скриптом уже после init.
+  document.addEventListener('click', (e) => {
+    const btn = e.target && e.target.closest ? e.target.closest('[data-copy-target]') : null;
+    if (btn) copyFrom(btn);
+  });
+
+  // Клик мимо окна закрывает его: <dialog> вместе с ::backdrop занимает весь
+  // экран, поэтому попадание «в подложку» — это событие на самом диалоге.
+  const dlg = $('#wallet-modal');
+  if (dlg) dlg.addEventListener('click', (e) => { if (e.target === dlg) closeWalletModal(); });
+
+  discoverWallets();
+
+  // Ответы на eip6963:requestProvider обычно приходят синхронно, но гарантий
+  // стандарт не даёт. Поэтому вердикт «кошелька нет» откладываем: если
+  // расширение объявится позже, onWalletsChanged() вернёт кнопки на место.
+  setTimeout(() => {
+    if (hasWallet()) { maybeAutoReconnect(); return; }
     $('#no-wallet').hidden = false;
-    $('#connect').disabled = true;
+    [$('#connect'), $('#connect-header')].forEach((b) => { if (b) b.disabled = true; });
     view.wallet = { key: 'wallet.noExt' };
     renderWallet();
-  } else {
-    window.ethereum.on && window.ethereum.on('accountsChanged', (accs) => {
-      state.account = accs && accs[0] ? accs[0] : null;
-      showWallet();
-    });
-    window.ethereum.on && window.ethereum.on('chainChanged', () => { showWallet(); });
-  }
+  }, 400);
 
   refresh();
 

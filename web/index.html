@@ -13,43 +13,154 @@
 
 <a class="skip" href="#live" data-i18n="skip">Skip to on-chain data</a>
 
+<!-- Спрайт иконок: рисуется один раз, дальше используется через <use>.
+     Никаких внешних файлов и запросов. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-tg" viewBox="0 0 24 24">
+    <path d="M23.91 3.79 20.3 20.84c-.25 1.21-.98 1.5-2 .94l-5.5-4.07-2.66 2.57c-.3.3-.55.56-1.1.56l.39-5.63 10.25-9.31c.45-.4-.1-.62-.69-.23L6.36 12.9 1 11.22c-1.17-.36-1.19-1.16.24-1.72l21.26-8.2c.97-.36 1.82.24 1.41 2.49z"/>
+  </symbol>
+  <symbol id="i-x" viewBox="0 0 24 24">
+    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+  </symbol>
+  <symbol id="i-gh" viewBox="0 0 24 24">
+    <path d="M12 .5C5.37.5 0 5.87 0 12.5c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58l-.01-2.05c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.96 0-1.31.47-2.39 1.24-3.23-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6.01 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.92 1.24 3.23 0 4.63-2.81 5.65-5.49 5.95.43.37.82 1.1.82 2.22l-.01 3.29c0 .32.21.7.82.58A12.01 12.01 0 0 0 24 12.5C24 5.87 18.63.5 12 .5z"/>
+  </symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24">
+    <path d="M13.47 4.47a.75.75 0 0 1 1.06 0l6.75 6.75c.3.3.3.77 0 1.06l-6.75 6.75a.75.75 0 1 1-1.06-1.06l5.47-5.47H3.75a.75.75 0 0 1 0-1.5h15.19l-5.47-5.47a.75.75 0 0 1 0-1.06z"/>
+  </symbol>
+</svg>
+
 <header class="site-header">
   <div class="wrap header-inner">
-    <div class="brand">
+    <a class="brand" href="#top">
       <span class="brand-mark" aria-hidden="true">Σ 1/n!</span>
-      <span class="brand-name">Maclaurin&nbsp;Series</span>
+      <span class="brand-name">Maclaurin</span>
       <span class="brand-ticker">MACLRN</span>
-    </div>
+    </a>
+
     <div class="header-tools">
       <nav class="site-nav" data-i18n-aria="nav.aria" aria-label="Sections">
         <a href="#live" data-i18n="nav.live">Live data</a>
         <a href="#mechanics" data-i18n="nav.mechanics">Mechanics</a>
         <a href="#immutable" data-i18n="nav.immutable">Immutability</a>
         <a href="#buy" data-i18n="nav.buy">Buy</a>
+        <a href="#contracts" data-i18n="nav.contracts">Contracts</a>
         <a href="#risks" data-i18n="nav.risks">Risks</a>
       </nav>
+
+      <span class="header-divider" aria-hidden="true"></span>
+
+      <div class="socials">
+        <a class="social" id="social-tg" href="https://t.me/MaclaurinRHC" target="_blank" rel="noopener noreferrer" data-i18n-aria="social.tg.aria" aria-label="Telegram">
+          <svg aria-hidden="true"><use href="#i-tg"></use></svg>
+        </a>
+        <a class="social" id="social-x" href="https://x.com/MaclaurinRHC" target="_blank" rel="noopener noreferrer" data-i18n-aria="social.x.aria" aria-label="X">
+          <svg aria-hidden="true"><use href="#i-x"></use></svg>
+        </a>
+        <a class="social" id="social-gh" href="https://github.com/nonbrainkid/Maclaurin" target="_blank" rel="noopener noreferrer" data-i18n-aria="social.gh.aria" aria-label="GitHub">
+          <svg aria-hidden="true"><use href="#i-gh"></use></svg>
+        </a>
+      </div>
+
       <div class="lang-switch" role="group" data-i18n-aria="lang.aria" aria-label="Language">
         <button type="button" class="lang-btn" data-lang="en" aria-pressed="true">EN</button>
         <button type="button" class="lang-btn" data-lang="ru" aria-pressed="false">RU</button>
       </div>
+
+      <button id="connect-header" type="button" class="btn btn-primary" data-i18n="buy.connect">Connect wallet</button>
     </div>
   </div>
 </header>
 
-<main>
+<main id="top">
 
 <!-- ─────────────────────────────  HERO  ───────────────────────────── -->
 <section class="hero wrap">
-  <h1 data-i18n-html="hero.title">Supply is <span class="mono">e</span>. Emission is <span class="mono">1/n!</span>.</h1>
+  <div class="hero-grid">
 
-  <p class="lede" data-i18n-html="hero.lede">
-    An ERC-20 whose issuance schedule is not a team decision but the partial sums
-    of a series. Total supply equals the number <span class="mono">e</span> to 18
-    decimal places. Emission decays factorially and terminates on its own: not on
-    a roadmap date, but at the epoch where the next term of the series first falls
-    below one base unit of the token.
-  </p>
+    <div>
+      <p class="hero-badge">
+        <span class="dot" id="live-dot" aria-hidden="true"></span>
+        <span data-i18n="hero.badge">Live on Robinhood Chain · chain ID 4663</span>
+      </p>
 
+      <h1 data-i18n-html="hero.title">Supply is <span class="mono">e</span>. Emission is <span class="mono">1/n!</span>.</h1>
+
+      <p class="lede" data-i18n-html="hero.lede">
+        An ERC-20 whose issuance schedule is not a team decision but the partial sums
+        of a series. Total supply equals the number <span class="mono">e</span> to 18
+        decimal places. Emission decays factorially and terminates on its own: not on
+        a roadmap date, but at the epoch where the next term of the series first falls
+        below one base unit of the token.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary btn-lg" href="#buy" data-i18n="hero.cta.buy">Buy through the curve</a>
+        <a class="btn btn-lg" href="#live" data-i18n="hero.cta.verify">Verify on-chain</a>
+      </div>
+
+      <div class="social-row">
+        <a class="social-pill" href="https://t.me/MaclaurinRHC" target="_blank" rel="noopener noreferrer">
+          <svg aria-hidden="true"><use href="#i-tg"></use></svg>
+          <span>Telegram</span><span class="handle">@MaclaurinRHC</span>
+        </a>
+        <a class="social-pill" href="https://x.com/MaclaurinRHC" target="_blank" rel="noopener noreferrer">
+          <svg aria-hidden="true"><use href="#i-x"></use></svg>
+          <span>X</span><span class="handle">@MaclaurinRHC</span>
+        </a>
+        <a class="social-pill" href="https://github.com/nonbrainkid/Maclaurin" target="_blank" rel="noopener noreferrer">
+          <svg aria-hidden="true"><use href="#i-gh"></use></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Панель продажи. Все числа приходят с цепочки, в разметке их нет. -->
+    <aside class="sale-card" aria-labelledby="sale-title">
+      <div class="sale-head">
+        <h2 class="sale-title" id="sale-title" data-i18n="sale.h">Bonding curve sale</h2>
+        <span class="sale-chain" id="sale-chain">chain 4663</span>
+      </div>
+
+      <p class="sale-price">
+        <span class="k" data-i18n="sale.price">Spot price</span>
+        <span class="v" id="sale-price-value">—</span>
+        <span class="u" id="sale-price-unit"></span>
+      </p>
+
+      <div class="progress-head">
+        <span data-i18n="sale.sold">Inventory sold</span>
+        <span class="num" id="sale-progress-pct">—</span>
+      </div>
+      <div class="progress" role="progressbar" id="sale-progress" aria-valuemin="0" aria-valuemax="100" data-i18n-aria="sale.sold" aria-label="Inventory sold">
+        <i id="sale-progress-fill"></i>
+      </div>
+
+      <dl class="sale-rows">
+        <div>
+          <dt data-i18n="sale.remaining">Remaining inventory</dt>
+          <dd id="sale-remaining">—</dd>
+        </div>
+        <div>
+          <dt data-i18n="sale.reserve">Curve reserve</dt>
+          <dd id="sale-reserve">—</dd>
+        </div>
+        <div>
+          <dt data-i18n="sale.epoch">Emission epoch</dt>
+          <dd id="sale-epoch">—</dd>
+        </div>
+      </dl>
+
+      <a class="btn btn-primary btn-block sale-cta" href="#buy" data-i18n="sale.cta">Open the buy panel</a>
+      <p class="sale-foot" data-i18n="sale.foot">Read live from the contracts on every page load.</p>
+    </aside>
+
+  </div>
+
+  <!-- Пояснение к названию стоит после сетки, а не внутри левой колонки:
+       на телефоне колонки складываются в одну, и панель продажи не должна
+       уезжать под длинный текст. -->
   <p class="note" data-i18n-html="hero.why">
     <strong>Why “Maclaurin”.</strong> A Maclaurin series is a Taylor series
     expanded at zero. The expansion <span class="mono">e<sup>x</sup> = Σ x<sup>n</sup>/n!</span>
@@ -81,6 +192,7 @@
 
 <!-- ────────────────────────────  LIVE DATA  ───────────────────────── -->
 <section id="live" class="wrap">
+  <p class="eyebrow"><span data-i18n="eyebrow.live">01 — On-chain</span></p>
   <h2 data-i18n="live.h2">On-chain data</h2>
   <p class="section-lede" data-i18n-html="live.lede">
     Everything below is read straight from the contracts with
@@ -194,6 +306,7 @@
 
 <!-- ────────────────────────────  MECHANICS  ───────────────────────── -->
 <section id="mechanics" class="wrap">
+  <p class="eyebrow"><span data-i18n="eyebrow.mech">02 — Mechanics</span></p>
   <h2 data-i18n="mech.h2">The mechanics, no maths background required</h2>
 
   <h3 data-i18n="mech.supply.h">1. The supply is a number, not a round figure</h3>
@@ -360,6 +473,7 @@
 
 <!-- ───────────────────────────  IMMUTABILITY  ─────────────────────── -->
 <section id="immutable" class="wrap">
+  <p class="eyebrow"><span data-i18n="eyebrow.imm">03 — Immutability</span></p>
   <h2 data-i18n="imm.h2">Why nobody can print tokens here</h2>
 
   <p data-i18n-html="imm.p1">
@@ -401,6 +515,7 @@
 
 <!-- ──────────────────────────  CURVE / BUY  ───────────────────────── -->
 <section id="buy" class="wrap">
+  <p class="eyebrow"><span data-i18n="eyebrow.buy">04 — Buy</span></p>
   <h2 data-i18n="buy.h2">Buying through the bonding curve</h2>
 
   <p data-i18n="buy.p1">
@@ -417,7 +532,7 @@
     <li data-i18n-html="buy.rule.fee"><strong>A flat 1% fee in ETH</strong> — a constant, not a variable. It is taken before the reserve is credited on a buy, and out of the already-reduced amount on a sell, so the reserve never funds the fee.</li>
     <li data-i18n-html="buy.rule.buyback"><strong>The curve is not an exchange: you can only sell back to it what you bought from it.</strong> The purchase right is tied to the address (<code>boughtOf(address)</code>) and does not travel with an ordinary transfer. Otherwise a holder of free genesis tokens or staking rewards would walk off with the buyers' ETH. Tokens acquired anywhere other than the curve are sold on a secondary market, not here.</li>
     <li data-i18n-html="buy.rule.nodiscretion"><strong>Nothing in the sell path depends on anyone's decision:</strong> only your balance, your own slippage protection and a deadline that has not expired. No pauses, no lists, no cooldown.</li>
-    <li data-i18n-html="buy.rule.antisnipe"><strong>An anti-snipe window covers the first hour after launch</strong>, capping purchases at 10 000 000 tokens per address. It is a mitigation, not a defence: the cap is trivially bypassed with several wallets — it only stops a single transaction in the first block from taking a meaningful share of the inventory.</li>
+    <li data-i18n-html="buy.rule.antisnipe"><strong>The anti-snipe window has already expired.</strong> It capped purchases at 10 000 000 tokens per address for the first hour after the curve was deployed (<code>antiSnipeEnd()</code> — check it on-chain). That hour is over and no purchase was made during it, so the cap applies to nothing: right now a single transaction can buy the entire remaining inventory. The cap was a mitigation rather than a defence in any case — several wallets bypass it trivially.</li>
   </ul>
 
   <div class="address-block">
@@ -432,8 +547,21 @@
 
   <div class="buy-panel">
     <div class="buy-wallet">
-      <button id="connect" type="button" class="btn" data-i18n="buy.connect">Connect wallet</button>
-      <span id="wallet-state" class="wallet-state" role="status" aria-live="polite">Wallet not connected</span>
+      <div class="wallet-id">
+        <img id="wallet-avatar" class="wallet-avatar" alt="" hidden>
+        <span id="wallet-state" class="wallet-state" role="status" aria-live="polite">Wallet not connected</span>
+      </div>
+      <div class="wallet-actions">
+        <button id="connect" type="button" class="btn" data-i18n="buy.connect">Connect wallet</button>
+        <button id="disconnect" type="button" class="btn btn-ghost" data-i18n="wallet.disconnect" hidden>Disconnect</button>
+      </div>
+    </div>
+
+    <div class="quick-row">
+      <button type="button" class="chip" data-amount="0.01">0.01</button>
+      <button type="button" class="chip" data-amount="0.05">0.05</button>
+      <button type="button" class="chip" data-amount="0.1">0.1</button>
+      <button type="button" class="chip" id="amount-max" data-i18n="buy.quick.max" data-i18n-title="buy.quick.maxHint">Max</button>
     </div>
 
     <div class="buy-form">
@@ -452,7 +580,7 @@
     </div>
 
     <div class="buy-actions">
-      <button id="quote" type="button" class="btn btn-ghost" data-i18n="buy.action.quote">Get quote</button>
+      <button id="quote" type="button" class="btn" data-i18n="buy.action.quote">Get quote</button>
       <button id="do-buy" type="button" class="btn btn-primary" data-i18n="buy.action.buy" disabled>Buy</button>
     </div>
 
@@ -497,9 +625,9 @@
   <div class="no-wallet" id="no-wallet" hidden>
     <h3 data-i18n="nowallet.h">No wallet in this browser</h3>
     <p data-i18n-html="nowallet.p1">
-      The page did not find <span class="mono">window.ethereum</span>, which means
-      no wallet extension is installed or it is disabled for this site. What you
-      can do:
+      The page found no wallet: neither an EIP-6963 announcement nor
+      <span class="mono">window.ethereum</span>. That means no wallet extension is
+      installed or it is disabled for this site. What you can do:
     </p>
     <ol class="rules">
       <li data-i18n="nowallet.step1">install any EVM wallet that supports custom networks (MetaMask or Rabby, for example) from your browser's official extension store;</li>
@@ -515,8 +643,27 @@
   </div>
 </section>
 
+<!-- ───────────────────────────  CONTRACTS  ────────────────────────── -->
+<section id="contracts" class="wrap">
+  <p class="eyebrow"><span data-i18n="eyebrow.contracts">05 — Contracts</span></p>
+  <h2 data-i18n="contracts.h2">Contract addresses</h2>
+  <p class="section-lede" data-i18n="contracts.lede">
+    All four contracts are deployed and verified. Copy an address from here and
+    compare it with the one your wallet shows before you sign anything.
+  </p>
+
+  <div class="contract-list" id="contract-list"></div>
+
+  <p class="footnote" data-i18n="contracts.footnote">
+    Verification means the explorer matched the deployed bytecode against the
+    source. An unverified contract is an unchecked contract, whatever a website
+    says about it.
+  </p>
+</section>
+
 <!-- ─────────────────────────────  RISKS  ──────────────────────────── -->
 <section id="risks" class="wrap">
+  <p class="eyebrow"><span data-i18n="eyebrow.risks">06 — Risks</span></p>
   <h2 data-i18n="risks.h2">Risks. Read this before buying</h2>
 
   <div class="risk-box">
@@ -533,6 +680,28 @@
         bought from it, and only from the address that bought it. Tokens obtained
         by any other route cannot be sold to the curve. There may be no secondary
         market at all.
+      </li>
+      <li data-i18n-html="risks.exitPrice">
+        <strong>The curve buys back at its current price, not at the price you
+        paid.</strong> The reserve always covers every outstanding buy-back, so
+        <code>sell()</code> can never fail for lack of funds — but the amount of
+        ETH it returns depends on how much has been sold at that moment, not on
+        your entry. If other buyers exit before you do, the price falls back
+        along the curve and you receive less than you put in — in the worst case
+        (you bought at the top of the inventory, everyone else sold first) about
+        63% less, which is the factor <span class="mono">e</span> the price
+        spans. This is a first-in-best-out mechanism, not a refund.
+      </li>
+      <li data-i18n-html="risks.concentration">
+        <strong>The whole inventory costs about 3.76 ETH, and one address can
+        take all of it.</strong> That is small enough that a single actor can buy
+        the entire billion-token inventory in one transaction, stake it, collect
+        essentially the whole 718 281 828-token emission pool — rewards are split
+        by weight, and their weight would be the divisor — then sell the
+        inventory back to the curve at the same average price and recover the
+        ETH. The round trip costs only the two 1% fees. Nothing in the contracts
+        prevents this, and staking alongside such a position yields a
+        proportionally negligible share.
       </li>
       <li data-i18n-html="risks.experimental">
         <strong>The project is experimental.</strong> The contracts are immutable:
@@ -572,6 +741,7 @@
 
 <!-- ─────────────────────────────  LINKS  ──────────────────────────── -->
 <section id="links" class="wrap">
+  <p class="eyebrow"><span data-i18n="eyebrow.links">07 — Verify</span></p>
   <h2 data-i18n="links.h2">Verify</h2>
   <div class="link-grid" id="link-grid"></div>
   <p class="footnote" data-i18n="links.footnote">
@@ -586,6 +756,31 @@
 
 <footer class="site-footer">
   <div class="wrap">
+    <div class="footer-top">
+      <div>
+        <p class="brand" style="margin-bottom:.5rem">
+          <span class="brand-mark" aria-hidden="true">Σ 1/n!</span>
+          <span class="brand-name">Maclaurin Series</span>
+          <span class="brand-ticker">MACLRN</span>
+        </p>
+        <p class="footnote" data-i18n="footer.tagline" style="margin:0">Supply is e. Emission is 1/n!.</p>
+      </div>
+      <div class="social-row">
+        <a class="social-pill" href="https://t.me/MaclaurinRHC" target="_blank" rel="noopener noreferrer">
+          <svg aria-hidden="true"><use href="#i-tg"></use></svg>
+          <span>Telegram</span><span class="handle">@MaclaurinRHC</span>
+        </a>
+        <a class="social-pill" href="https://x.com/MaclaurinRHC" target="_blank" rel="noopener noreferrer">
+          <svg aria-hidden="true"><use href="#i-x"></use></svg>
+          <span>X</span><span class="handle">@MaclaurinRHC</span>
+        </a>
+        <a class="social-pill" href="https://github.com/nonbrainkid/Maclaurin" target="_blank" rel="noopener noreferrer">
+          <svg aria-hidden="true"><use href="#i-gh"></use></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+
     <p data-i18n="footer.p1">
       Maclaurin Series (MACLRN). The narrative is built around 18th-century
       mathematics, not around a public figure: no real person's name or likeness
@@ -600,6 +795,28 @@
     </p>
   </div>
 </footer>
+
+<!-- ─────────────────────  ВЫБОР КОШЕЛЬКА (EIP-6963)  ───────────────── -->
+<dialog id="wallet-modal" class="wallet-modal" aria-labelledby="wm-title">
+  <div class="wm-head">
+    <div>
+      <h2 id="wm-title" data-i18n="wm.title">Choose a wallet</h2>
+      <p data-i18n="wm.subtitle">Wallets that announced themselves to this page.</p>
+    </div>
+    <button type="button" class="wm-close" id="wm-close" data-i18n-aria="wm.close" aria-label="Close">✕</button>
+  </div>
+
+  <div class="wm-list" id="wm-list"></div>
+
+  <div class="wm-empty" id="wm-empty" hidden>
+    <h3 data-i18n="wm.none.h">No wallet detected</h3>
+    <p data-i18n="wm.none.p">Nothing answered the EIP-6963 request and there is no window.ethereum in this browser. Install an EVM wallet extension, or open this page inside your wallet's built-in browser on mobile.</p>
+  </div>
+
+  <p class="wm-error" id="wm-error" role="status" aria-live="polite"></p>
+
+  <p class="wm-foot" data-i18n="wm.foot">The page never sees your keys. Connecting only shares your address; every transaction is signed in the wallet itself.</p>
+</dialog>
 
 <script src="app.js"></script>
 </body>
