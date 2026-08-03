@@ -223,6 +223,9 @@ Fair question — here's what you can check yourself instead of trusting me.
    launch: inventory to the curve, treasury to a time-lock, 250M burned to 0x…dEaD.
 3. The treasury contract has no early-withdrawal function for anyone, including me.
 4. Selling back to the curve has no pause, no cooldown and no allowlist.
+5. Four independent audits. The last one found a real hole in the curve — anyone
+   holding tokens could have drained the buyers' ETH reserve. It's fixed, the fix
+   was audited separately, and the whole thing is written up in the repo.
 
 What I can't give you: a guarantee that the price goes anywhere. Nobody can, and
 anyone who does is lying.
@@ -257,7 +260,11 @@ Lock length is R weeks for radius R, R = 1..7. You pick it when you stake.
 ### «Почему нельзя продать награды стейкинга обратно в кривую?»
 
 Самый важный из ответов: без него механика выглядит как ограничение продажи,
-то есть как признак honeypot. Объяснять надо через защиту покупателя.
+то есть как признак honeypot. Объяснять надо через защиту покупателя — и добивать
+ссылкой на код, потому что здесь это не обещание, а публичный счётчик:
+`boughtOf(address)` в `MaclaurinCurve` виден в эксплорере, и `sell()` ревертит
+`ExceedsPurchased`, если попросить больше. Механика проверяется тем же способом,
+что и всё остальное в проекте, — одной командой.
 
 ```
 Because the curve is a primary sale with a money-back guarantee, not an exchange.
@@ -269,9 +276,33 @@ empty when they went to exit. That is not hypothetical arithmetic: rewards and
 genesis shares together are comparable in size to the entire curve inventory.
 
 So the right to sell back is per-address and equals exactly what that address bought
-from the curve — no less and no more. Everything else trades on the secondary
-market, where the counterparty is another trader, not other buyers' deposits.
+from the curve — no less and no more. It's a public counter, not a policy: call
+boughtOf(yourAddress) on the verified contract and you'll see your own exit right.
+Ask for more and sell() reverts with ExceedsPurchased.
+
+Everything else trades on the secondary market, where the counterparty is another
+trader, not other buyers' deposits.
 ```
+
+*Опора: `mapping(address => uint256) public boughtOf` в `src/MaclaurinCurve.sol`;
+растёт только в `buy()` на того, чей ETH лёг в резерв, и гасится в `sell()`.
+Инвариант `Σ boughtOf == sold` закреплён тестом `invariant_PurchaseRightsSumToSold`,
+а сама атака (посторонний забирает резерв покупателя) — пробой
+`test_probe_OutsiderCannotStealBuyerReserve`.*
+
+> **Если разговор пойдёт вглубь — это сильный аргумент, а не слабое место.** Первая
+> редакция кривой действительно была уязвима именно так, дыру нашёл независимый аудит,
+> она воспроизведена тестом (покупатель внёс 1 ETH, посторонний забрал 0.9801 ETH,
+> покупатель не смог выйти вообще), закрыта `boughtOf`, а фикс проаудирован отдельным
+> проходом. Рассказывать об этом можно и нужно: «мы нашли и починили» проверяется по
+> коду, а «у нас всё изначально было идеально» — нет. Разбор целиком — в README,
+> раздел «Что нашёл аудит фазы 4». **Формулировать без бравады и без деталей эксплойта
+> сверх тех, что уже опубликованы в репозитории.**
+
+> Если спросят «а если я купил у другого держателя?» — отвечать прямо: право выкупа
+> живёт на адресе покупателя, а не на токенах, и обычным `transfer` не переносится.
+> Иначе учёт пришлось бы вести в самом токене, то есть менять уже развёрнутый
+> неизменяемый контракт.
 
 ---
 
@@ -280,10 +311,10 @@ market, where the counterparty is another trader, not other buyers' deposits.
 | Нельзя | Почему |
 |---|---|
 | «доходность», «APY», «×N к вложениям», ракеты, «to the moon» | Обещание финансового результата. Множитель стейкинга описывать только как механику распределения, никогда как доход |
-| Имя, фото, цитата или должность реального человека так, что подразумевается его причастность или одобрение | Прямой запрет из `PHASE4-SPEC.md` §9 и `README.md`. Проект **не аффилирован** с Robinhood и её руководством |
+| Имя, фото, цитата или должность реального человека так, что подразумевается его причастность или одобрение | Прямой запрет из `MACLAURIN-TOKEN-SPEC.md` §9, `PHASE4-SPEC.md` §10 и `README.md` («Правовое»). Проект **не аффилирован** с Robinhood и её руководством |
 | Логотипы, шрифты, фирменные цвета чужих компаний | То же самое, только визуально |
 | «Мы на цепочке компании X» с намёком на партнёрство | Указание сети деплоя — факт. Претензия на связь — нет. Формулировка: «deployed on Robinhood Chain», без прилагательных |
-| «Аудировано, значит безопасно» | Аудит — рассуждение о коде, а не страховка. Писать: «прошёл независимый аудит, находок выше Info нет», со ссылкой на отчёт |
+| «Аудировано, значит безопасно» | Аудит — рассуждение о коде, а не страховка. Писать: «прошёл четыре независимых аудита; последний нашёл критическую дыру, она закрыта и фикс проаудирован отдельно», со ссылками на отчёты. Не писать «находок не было» — они были, и это как раз довод в пользу процесса |
 | «Риска нет», «застраховано», «гарантированный возврат» | Кривая гарантирует выкуп **купленного у неё** по формуле, а не сохранность денег. Разница существенная, и её надо проговаривать |
 | Прятать масштаб ликвидности | ~3.7 ETH за весь инвентарь — говорить прямо. Умолчание об этом читается как обман, когда цифру найдут сами |
 | Публиковать адреса до верификации | `RELEASE-CHECKLIST.md` §9 |
@@ -315,7 +346,8 @@ Not affiliated with any company. Nothing here is investment or financial advice.
 | Инвентарь кривой | 1 000 000 000 токенов, 36.79% сапплая |
 | Стартовая цена / конечная | 2 gwei → 5.436563656… gwei за токен, рост ровно ×e |
 | Весь инвентарь стоит | `3 718 281 828 459 045 235` wei = (1 + e) ETH ≈ 3.72 ETH |
-| Комиссия кривой | 1%, в ETH, обе стороны |
+| Комиссия кривой | 1%, в ETH, обе стороны. Из резерва не берётся никогда |
+| Право выкупа | именное: `boughtOf(адрес)` — сколько этот адрес купил у кривой и ещё не вернул. Продать больше → `ExceedsPurchased` |
 | Окно анти-снайпа | 1 час от деплоя кривой, ≤ 10 000 000 токенов на адрес (≈ 0.0202 ETH) |
 | Сожжено | 250 000 000 токенов (9.20%) в `0x…dEaD` |
 | Казна под замком | 500 000 000 (18.39%) до конца эмиссии, досрочно не выдаётся никому |

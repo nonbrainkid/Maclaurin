@@ -1969,16 +1969,209 @@ cast call $TOKEN "balanceOf(address)(uint256)" $EMISSION --rpc-url rh # оста
 
 ---
 
+## 12. Запуск фазы 4: казна, кривая и раскладка genesis 🔴
+
+**Выполняется ПОСЛЕ §6 (токен и эмиссия уже в сети) и ДО §8 (пул).** Раздел стоит в конце
+документа только потому, что дописан позже; в порядке выполнения его место — сразу за §7.
+
+### 12.1 Почему это ОДНА команда, а не три 🔴
+
+`script/Launch.s.sol` делает подряд, без пауз:
+
+1. разворачивает `MaclaurinVesting` (казна, 500 000 000 MACLRN под замком);
+2. разворачивает `MaclaurinCurve` (бондинг-кривая, инвентарь 1 000 000 000);
+3. раскладывает genesis по таблице `PHASE4-SPEC.md` §7 — вызывая `Distribute.s.sol`,
+   а не копию его логики;
+4. проверяет результат на цепочке.
+
+Разнести эти шаги по отдельным командам **нельзя**, и это не про удобство.
+
+Окно анти-снайпа кривой стартует в её **конструкторе**: `startTime = block.timestamp`,
+`antiSnipeEnd = startTime + 1 час`. Продавать при этом кривой нечего — инвентарь приходит
+обычным `transfer` из genesis, то есть отдельной транзакцией. Значит окно тикает с момента
+развёртывания, а торги начинаются с момента прихода миллиарда токенов. Всё, что между
+этими двумя точками, вычитается из защиты. Развернул кривую вечером, раскладку запустил
+утром — лимит «не больше 1% инвентаря на адрес» не сработает **ни разу**: первый же бот
+выкупит существенную долю по минимальной цене. Контракт неизменяем, чинить будет нечего.
+
+Скрипт проверяет это явно: если к концу прогона окно уже закрыто, он падает с
+`anti-snipe window closed before inventory arrived`.
+
+> **Токен и эмиссию Launch НЕ разворачивает.** Их разворачивает `Deploy.s.sol`, и раньше:
+> эмиссия должна стартовать до продаж, а с окном анти-снайпа её тайминг никак не связан.
+> Адреса приходят через `MACLAURIN_TOKEN` и (необязательно) `MACLAURIN_EMISSION`.
+
+### 12.2 Кто подписывает 🔴
+
+Весь прогон идёт от **одного** адреса — `GENESIS_RECIPIENT`, того, на котором лежат
+2 000 000 000 MACLRN. Он же разворачивает казну и кривую. Два подписанта в одном
+`forge script` означали бы, что ошибка в флагах оставляет запуск на середине: контракты
+развёрнуты, инвентарь не пришёл, окно тикает.
+
+Практическое следствие: **на `GENESIS_RECIPIENT` должен быть газ**, и его ключ должен быть
+в keystore — так же, как ключ деплоера (§2.1):
+
+```powershell
+cast wallet import maclaurin-genesis --interactive
+$GENESIS = (cast wallet address --account maclaurin-genesis)
+cast balance $GENESIS --rpc-url $RPC --ether
+```
+
+### 12.3 Переменные окружения
+
+Дописать в `.env` (образец и пояснения — в `.env.example`):
+
+```ini
+MACLAURIN_TOKEN=0x…        # из §4.3 / §6.3
+MACLAURIN_EMISSION=0x…     # необязательно, но задать стоит — см. ниже
+VESTING_BENEFICIARY=0x…    # кому откроется казна, immutable
+FEE_RECIPIENT=0x…          # кому идёт 1% комиссии кривой, immutable
+VESTING_UNLOCK_TIME=…      # unix-время разблокировки казны
+EXPECTED_UNLOCK_TIME=…     # та же дата, набранная второй раз
+```
+
+`GENESIS_RECIPIENT`, `MARKETING_WALLET`, `RESERVE_WALLET`, `REMAINDER_VAULT` уже заполнены
+для §4 и §6 — Launch берёт их оттуда же.
+
+**`MACLAURIN_CURVE` и `MACLAURIN_VESTING` заполнять НЕ надо** — это выход скрипта, а не
+вход. Он их разворачивает сам и печатает готовые строки в конце прогона (§12.6).
+
+Дату разблокировки не считать в уме. По §6 спеки она равна концу эмиссии, и это можно
+спросить у самой эмиссии:
+
+```powershell
+$UNLOCK = (cast call $EMISSION "emissionEnd()(uint256)" --rpc-url $RPC).Split(" ")[0]
+$UNLOCK
+```
+
+(`.Split(" ")[0]` — потому что `cast call` печатает крупные числа с хвостом вида
+`[1.8e9]`, см. §5.4.)
+
+> **Зачем две переменные под одну дату.** `VESTING_UNLOCK_TIME` уходит в конструктор
+> казны, `EXPECTED_UNLOCK_TIME` — только на сверку, и сверяется точным равенством.
+> Промах на год не ловит ничто, кроме второй, независимо набранной записи. Если
+> `MACLAURIN_EMISSION` задан, добавляется третья, самая надёжная проверка: дата обязана
+> совпасть с `emissionEnd()`, прочитанной с цепочки. Опечатку там набрать негде.
+>
+> Обе переменные необязательные по отдельности, но для мейннета задавать надо обе.
+
+### 12.4 Что скрипт проверяет ДО первой транзакции
+
+`forge script` сначала прогоняет `run()` в симуляции целиком и отправляет транзакции,
+только если она прошла до конца. Упавший `require` — хоть на входе, хоть в самом конце —
+означает, что **не будет отправлено ничего**.
+
+| Сообщение | Что чинить |
+|---|---|
+| `MACLAURIN_TOKEN is zero` / `is not a contract` | адрес токена в `.env` |
+| `GENESIS_RECIPIENT is zero` | адрес отправителя |
+| `VESTING_BENEFICIARY is zero` | получатель казны |
+| `FEE_RECIPIENT is zero` | получатель комиссии кривой |
+| `MARKETING_WALLET is zero` / `RESERVE_WALLET…` / `REMAINDER_VAULT…` | адреса долей |
+| `VESTING_UNLOCK_TIME is not in the future` | дата разблокировки в прошлом |
+| `VESTING_UNLOCK_TIME != EXPECTED_UNLOCK_TIME` | две записи даты разошлись |
+| `VESTING_UNLOCK_TIME != emission.emissionEnd()` | дата не совпала с концом эмиссии |
+| `emission holds a different token` | `MACLAURIN_EMISSION` от другого токена |
+| `sender does not hold exactly GENESIS` | на отправителе не ровно 2 000 000 000 MACLRN |
+| `duplicate address among recipients` | два получателя с одним адресом (проверка `Distribute`) |
+| `curve is not a contract` / `vesting is not a contract` | сюда дойти нельзя: контракты только что развёрнуты |
+
+После раскладки отрабатывают постусловия: каждая доля ровно по таблице §7, на отправителе
+ноль, инвентарь кривой равен её собственной константе `INVENTORY`, казна — ровно
+500 000 000, оба контракта обслуживают тот же токен, окно анти-снайпа ещё открыто.
+
+### 12.5 Сухой прогон 🟢
+
+Без `--broadcast` не отправляется ничего. Прогонять столько раз, сколько нужно, чтобы
+перестать сомневаться: симуляция бесплатна.
+
+```powershell
+forge script script/Launch.s.sol:Launch --rpc-url $RPC --sender $GENESIS
+```
+
+В выводе смотреть глазами:
+
+- `chain id` — та сеть, которая нужна (`46630` тестнет, `4663` мейннет);
+- `vesting unlockTime` и `emission ends at` — совпадают;
+- `curve inventory: 1000000000` и `vesting treasury: 500000000`;
+- `sender balance: 0`;
+- `anti-snipe left, s: 3600`;
+- `all post-launch invariants hold`.
+
+Если `EXPECTED_UNLOCK_TIME` или `MACLAURIN_EMISSION` не заданы, скрипт печатает про это
+отдельную строку — отсутствие проверки видно, а не подразумевается.
+
+### 12.6 Настоящий запуск 🔴 НЕОБРАТИМО
+
+```powershell
+forge script script/Launch.s.sol:Launch --rpc-url $RPC --account maclaurin-genesis --sender $GENESIS --broadcast
+```
+
+Последние строки вывода — готовые строки для `.env`:
+
+```
+  write these two lines into .env:
+    MACLAURIN_CURVE=   0x…
+    MACLAURIN_VESTING= 0x…
+```
+
+Записать их в `.env` сразу же: без них не работают ни `verify()`, ни команды ниже.
+Адреса всегда можно достать и из брод­каст-лога:
+
+```powershell
+Get-Content broadcast/Launch.s.sol/4663/run-latest.json | ConvertFrom-Json | Select-Object -ExpandProperty transactions | Select-Object contractName, contractAddress
+```
+
+### 12.7 Сразу после запуска
+
+- [ ] `MACLAURIN_CURVE` и `MACLAURIN_VESTING` записаны в `.env`
+- [ ] Независимая проверка раскладки по живой цепочке:
+
+      ```powershell
+      forge script script/Distribute.s.sol --sig "verify()" --rpc-url $RPC
+      ```
+
+- [ ] Верифицировать оба новых контракта на Blockscout (§5; у них есть настоящие
+      транзакции создания, поэтому `--guess-constructor-args` здесь работает)
+- [ ] Read-only проверки на цепочке:
+
+      ```powershell
+      cast call $TOKEN "balanceOf(address)(uint256)" $CURVE --rpc-url $RPC     # 1e27
+      cast call $TOKEN "balanceOf(address)(uint256)" $VESTING --rpc-url $RPC   # 5e26
+      cast call $TOKEN "balanceOf(address)(uint256)" $GENESIS --rpc-url $RPC   # 0
+      cast call $CURVE "antiSnipeEnd()(uint256)" --rpc-url $RPC
+      cast call $CURVE "spotPrice()(uint256)" --rpc-url $RPC                   # 2000000000
+      cast call $VESTING "unlockTime()(uint256)" --rpc-url $RPC                # == $UNLOCK
+      ```
+
+- [ ] **Пока идёт первый час — смотреть за кривой.** Лимит анти-снайпа работает только в
+      это окно, и обходится он несколькими адресами. Это смягчение, а не защита (§4.5
+      спеки), и подавать его надо именно так.
+- [ ] Записать оба адреса в `README.md`
+
+> **Чего Launch не делает и делать не будет.** Он не выводит комиссию (`withdrawFees`
+> permissionless, зовётся когда угодно), не открывает казну (`release()` до `unlockTime`
+> ревертит по замыслу) и не создаёт пул (§8 — отдельный этап и отдельное решение).
+
+---
+
 ## Приложение: сводка переменных окружения
 
 | Переменная | Кто использует | Пример |
 |---|---|---|
-| `GENESIS_RECIPIENT` | `Deploy.s.sol` | `0x…` |
-| `REMAINDER_VAULT` | `Deploy.s.sol` | `0x…` |
+| `GENESIS_RECIPIENT` | `Deploy.s.sol`, `Distribute.s.sol`, `Launch.s.sol` | `0x…` |
+| `REMAINDER_VAULT` | `Deploy.s.sol`, `Distribute.s.sol`, `Launch.s.sol` | `0x…` |
 | `EMISSION_START_DELAY` | `Deploy.s.sol` | `300` в тестнете, `86400` в мейннете |
+| `MACLAURIN_EMISSION` | `Launch.s.sol` (необязательна) | адрес эмиссии для сверки даты |
+| `VESTING_BENEFICIARY` | `Launch.s.sol` | `0x…` |
+| `FEE_RECIPIENT` | `Launch.s.sol` | `0x…` |
+| `VESTING_UNLOCK_TIME` | `Launch.s.sol` | `emissionEnd()` эмиссии |
+| `EXPECTED_UNLOCK_TIME` | `Launch.s.sol`, `Distribute.s.sol` (необязательна) | та же дата второй записью |
+| `MARKETING_WALLET` / `RESERVE_WALLET` | `Distribute.s.sol`, `Launch.s.sol` | `0x…` |
+| `MACLAURIN_CURVE` / `MACLAURIN_VESTING` | `Distribute.s.sol`; **выход** `Launch.s.sol` | заполняются после §12.6 |
 | `UNISWAP_WETH` | `Pool.s.sol` | `0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73` (**не** `0x4200…0006`) |
 | `RH_RPC_URL` / `RH_TESTNET_RPC_URL` | `foundry.toml` | `https://rpc.mainnet.chain.robinhood.com` |
-| `MACLAURIN_TOKEN` | `Pool.s.sol` | адрес токена |
+| `MACLAURIN_TOKEN` | `Pool.s.sol`, `Distribute.s.sol`, `Launch.s.sol` | адрес токена |
 | `MACLAURIN_AMOUNT` | `Pool.s.sol` | `200000000000000000000000000` |
 | `ETH_AMOUNT` | `Pool.s.sol` | `7000000000000000` |
 | `POOL_FEE` | `Pool.s.sol` | `10000` |
