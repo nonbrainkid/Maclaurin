@@ -96,6 +96,19 @@ const CONFIG = {
   /* Единый хэндл для показа рядом с иконками. */
   handle: '@MaclaurinRHC',
 
+  /* График. Свечи строятся из событий Bought/Sold самой кривой, прочитанных
+     через eth_getLogs. Ни бэкенда, ни индексатора, ни стороннего API: если
+     сделок нет, будет честно пусто, а не нарисованная «история».
+
+     curveDeployBlock — блок, в котором развёрнута кривая. Раньше него событий
+     не бывает, а сканировать сеть с нуля незачем. */
+  chart: {
+    curveDeployBlock: 26807291,
+    logChunk: 100000,          // публичные узлы часто режут диапазон eth_getLogs
+    defaultTf: '1h',
+    maxCandles: 120
+  },
+
   ui: {
     autoRefreshMs: 60000,      // 0 — выключить автообновление
     defaultSlippagePct: '1',
@@ -130,7 +143,31 @@ const SEL = {
   buy:          '0xd6febde8', // buy(uint256,uint256)
   boughtOf:     '0xb56e1c73', // boughtOf(address)
   antiSnipeEnd: '0x0e48fb1c', // antiSnipeEnd()
-  antiSnipeMax: '0xd7469371'  // ANTI_SNIPE_MAX()
+  antiSnipeMax: '0xd7469371', // ANTI_SNIPE_MAX()
+  priceAt:      '0x9dab2054', // priceAt(uint256)
+  previewSell:  '0xfb3dd95f', // previewSell(uint256)
+  sell:         '0xd3c9727c', // sell(uint256,uint256,uint256)
+  // ERC-20, нужны для продажи: разрешение выдаётся ровно на продаваемое
+  // количество, поэтому allowance читается перед каждой сделкой.
+  approve:      '0x095ea7b3', // approve(address,uint256)
+  allowance:    '0xdd62ed3e'  // allowance(address,address)
+};
+
+/* Топики событий кривой = keccak256 от сигнатуры события (cast keccak).
+   Bought(address indexed buyer, uint256 ethIn, uint256 fee, uint256 tokensOut, uint256 newSold)
+   Sold  (address indexed seller, uint256 tokensIn, uint256 fee, uint256 ethOut, uint256 newSold) */
+const EVENTS = {
+  bought: '0x27330bd7589580547b6437e08f9c60653de63691d2d2b2c13bff9ee67da2a68d',
+  sold:   '0x490fdc1c23c0f3a84bf80a0384eaadcb9188c9ef71b9430da391a0e4c4c39bf6'
+};
+
+/** Секунды в одном интервале свечи. Ключи — то, что написано на кнопках. */
+const TIMEFRAMES = {
+  '5m': 300,
+  '15m': 900,
+  '1h': 3600,
+  '4h': 14400,
+  '1d': 86400
 };
 
 /* Слоты EIP-1967: keccak256("eip1967.proxy.implementation") − 1 и
@@ -341,10 +378,48 @@ const I18N = {
     'buy.quick.max': 'Max',
     'buy.quick.maxHint': 'Fill in maxEthIn() — the largest purchase the remaining inventory allows at this moment',
     'buy.quick.maxFailed': 'Could not read maxEthIn(): {reason}',
+
+    /* — график — */
+    'chart.last': 'Last trade price',
+    'chart.aria': 'Price chart',
+    'chart.tf.aria': 'Timeframe',
+    'chart.mode.aria': 'Chart mode',
+    'chart.mode.candles': 'Candles',
+    'chart.mode.curve': 'Curve',
+    'chart.reload': 'Reload trades',
+    'chart.loading': 'Reading the trade log from the chain…',
+    'chart.empty': 'No trades in the log yet. Candles are built only from the curve\'s own Bought and Sold events — until there is a trade there is nothing to draw, and nothing is invented to fill the space.',
+    'chart.noCurve': 'The curve address is not set.',
+    'chart.failed': 'Could not read the trade log: {reason}',
+    'chart.status': '{trades} trades · {candles} candles · {tf} · scanned from block {block}',
+    'chart.curveNote': 'Price as a function of tokens sold — a pure function of the contract, not a history. The marker is where the curve stands right now.',
+    'chart.curveWait': 'Waiting for on-chain data…',
+    'chart.axisSold': 'tokens sold',
+
+    /* — вкладки и продажа — */
+    'trade.sell': 'Sell',
+    'trade.tabs.aria': 'Buy or sell',
+    'sell.field.amount': 'Amount in <span data-field="token">MACLRN</span>',
+    'sell.limit.none': 'Connect a wallet to see how much the curve owes this address a buy-back for.',
+    'sell.limit': 'The curve will buy back up to {amount} {sym} from this address · balance {bal} {sym}',
+    'sell.limit.zero': 'This address has bought nothing from the curve, so it has nothing to sell back here.',
+    'sell.quick.maxHint': 'Fill in the smaller of the token balance and the buy-back right',
+    'sell.approveNote': 'Selling takes two transactions: an allowance for exactly the amount being sold, then the sale itself. An unlimited approve is never requested — if the sale falls through, the contract keeps no standing right to move the rest of the balance.',
+    'sell.row.out': 'You receive',
+    'sell.row.min': 'Minimum on execution',
+    'sell.row.fee': 'Fee, 1%',
+    'sell.row.avg': 'Average price of this trade',
+    'sell.overLimit': 'More than this address may sell back to the curve. The ceiling is {amount} {sym}.',
+    'sell.overBalance': 'More than the token balance of this address.',
+    'sell.approving': 'Approving exactly {amount} {sym} — confirm in the wallet…',
+    'sell.approveWait': 'Waiting for the allowance to be mined…',
+    'sell.approveFailed': 'The allowance transaction did not confirm in time. Check it in the explorer, then try again.',
+    'sell.confirmTx': 'Now confirm the sale itself in the wallet.',
+    'sell.sent': 'Sale sent: ',
     'buy.sig.summary': 'What the wallet actually signs',
     'buy.sig.p': 'The call is <code>buy(uint256 minTokensOut, uint256 deadline)</code>, with the amount passed as the transaction\'s <span class="mono">value</span>. <span class="mono">minTokensOut</span> is derived from the <code>previewBuy(ethIn)</code> quote minus the slippage you set: if the price moves further than that between quoting and execution, the transaction reverts instead of filling at a worse price. Overpaying beyond the remaining inventory is not refunded as change — it reverts — which is why <code>maxEthIn()</code> exists, the exact upper bound at this moment.',
     'buy.sell.summary': 'How to sell back to the curve',
-    'buy.sell.p1': 'Selling takes two transactions, and there is deliberately no widget for it here: a static page has no business asking for an unlimited <code>approve</code>. The order is:',
+    'buy.sell.p1': 'The Sell tab above does this for you, but the site is not required for it: the same two calls are available in the explorer, and the allowance is for exactly the amount being sold — never an unlimited <code>approve</code>. The order is:',
     'buy.sell.step1': '<code>approve(curve address, amount)</code> on the token contract — grant an allowance for exactly the amount being sold;',
     'buy.sell.step2': '<code>sell(amount, minEthOut, deadline)</code> on the curve contract.',
     'buy.sell.p2': 'Both calls are available in the explorer\'s <em>Write contract</em> tab, which also shows the function body. <code>boughtOf(your address)</code> shows how many tokens the curve is obliged to buy back.',
@@ -710,10 +785,48 @@ const I18N = {
     'buy.quick.max': 'Максимум',
     'buy.quick.maxHint': 'Подставить maxEthIn() — самую крупную покупку, которую позволяет остаток инвентаря прямо сейчас',
     'buy.quick.maxFailed': 'Не удалось прочитать maxEthIn(): {reason}',
+
+    /* — график — */
+    'chart.last': 'Цена последней сделки',
+    'chart.aria': 'График цены',
+    'chart.tf.aria': 'Интервал',
+    'chart.mode.aria': 'Режим графика',
+    'chart.mode.candles': 'Свечи',
+    'chart.mode.curve': 'Кривая',
+    'chart.reload': 'Перечитать сделки',
+    'chart.loading': 'Читаем журнал сделок с цепочки…',
+    'chart.empty': 'Сделок в журнале пока нет. Свечи строятся только из событий Bought и Sold самой кривой — пока сделки не было, рисовать нечего, и пустота ничем не заполняется.',
+    'chart.noCurve': 'Адрес кривой не задан.',
+    'chart.failed': 'Не удалось прочитать журнал сделок: {reason}',
+    'chart.status': 'сделок: {trades} · свечей: {candles} · {tf} · просмотр с блока {block}',
+    'chart.curveNote': 'Цена как функция проданного объёма — чистая функция контракта, а не история. Маркер показывает, где кривая стоит сейчас.',
+    'chart.curveWait': 'Ждём данные с цепочки…',
+    'chart.axisSold': 'продано токенов',
+
+    /* — вкладки и продажа — */
+    'trade.sell': 'Продать',
+    'trade.tabs.aria': 'Покупка или продажа',
+    'sell.field.amount': 'Количество, <span data-field="token">MACLRN</span>',
+    'sell.limit.none': 'Подключите кошелёк, чтобы увидеть, сколько кривая обязана выкупить у этого адреса.',
+    'sell.limit': 'Кривая выкупит у этого адреса до {amount} {sym} · баланс {bal} {sym}',
+    'sell.limit.zero': 'Этот адрес ничего не покупал у кривой, поэтому продавать ей нечего.',
+    'sell.quick.maxHint': 'Подставить меньшее из баланса токенов и права обратного выкупа',
+    'sell.approveNote': 'Продажа — две транзакции: разрешение ровно на продаваемое количество и сама продажа. Неограниченный approve не запрашивается никогда: если сделка сорвётся, у контракта не останется постоянного права двигать остаток баланса.',
+    'sell.row.out': 'Получите',
+    'sell.row.min': 'Минимум при исполнении',
+    'sell.row.fee': 'Комиссия 1%',
+    'sell.row.avg': 'Средняя цена сделки',
+    'sell.overLimit': 'Больше, чем этот адрес может продать кривой. Потолок — {amount} {sym}.',
+    'sell.overBalance': 'Больше, чем баланс токенов на этом адресе.',
+    'sell.approving': 'Выдаём разрешение ровно на {amount} {sym} — подтвердите в кошельке…',
+    'sell.approveWait': 'Ждём, пока разрешение попадёт в блок…',
+    'sell.approveFailed': 'Транзакция разрешения не подтвердилась вовремя. Проверьте её в эксплорере и повторите.',
+    'sell.confirmTx': 'Теперь подтвердите в кошельке саму продажу.',
+    'sell.sent': 'Продажа отправлена: ',
     'buy.sig.summary': 'Что именно подписывает кошелёк',
     'buy.sig.p': 'Вызывается <code>buy(uint256 minTokensOut, uint256 deadline)</code>, сумма передаётся как <span class="mono">value</span> транзакции. <span class="mono">minTokensOut</span> считается из котировки <code>previewBuy(ethIn)</code> с вычетом заданного проскальзывания: если между расчётом и исполнением цена уйдёт дальше, транзакция откатится, а не исполнится по худшей цене. Переплата сверх остатка инвентаря не возвращается сдачей, а ревертит — поэтому есть <code>maxEthIn()</code>, точная верхняя граница на текущий момент.',
     'buy.sell.summary': 'Как продать обратно кривой',
-    'buy.sell.p1': 'Продажа — две транзакции, и виджета для неё здесь намеренно нет: статическая страница не должна просить <code>approve</code> на неограниченную сумму. Порядок такой:',
+    'buy.sell.p1': 'Вкладка «Продать» выше делает это за вас, но сайт для этого не нужен: те же два вызова доступны в эксплорере, а разрешение выдаётся ровно на продаваемое количество — <code>approve</code> на неограниченную сумму не запрашивается никогда. Порядок такой:',
     'buy.sell.step1': '<code>approve(адрес кривой, amount)</code> на контракте токена — выдать разрешение ровно на продаваемое количество;',
     'buy.sell.step2': '<code>sell(amount, minEthOut, deadline)</code> на контракте кривой.',
     'buy.sell.p2': 'Оба вызова доступны во вкладке <em>Write contract</em> эксплорера — там же видно тело функции. <code>boughtOf(ваш адрес)</code> показывает, сколько токенов кривая обязана выкупить обратно.',
@@ -1182,15 +1295,18 @@ const ex = {
 
 const state = {
   account: null,
-  quote: null       // { valueWei, minTokensOut, tokensOut, minutes } — для отправки транзакции
+  quote: null,      // { valueWei, minTokensOut, tokensOut, minutes } — для отправки транзакции
+  sellQuote: null   // { amount, minEthOut, minutes }
 };
 
 const view = {
-  chain:  null,     // { kind: 'data' | 'noAddresses' | 'allDown', … }
-  status: null,     // { key, params, kind }
-  quote:  null,     // сырая котировка для перерисовки
-  msg:    null,     // сообщение под панелью покупки
-  wallet: null      // { account, bought } | { key }
+  chain:     null,  // { kind: 'data' | 'noAddresses' | 'allDown', … }
+  status:    null,  // { key, params, kind }
+  quote:     null,  // сырая котировка покупки для перерисовки
+  sellQuote: null,  // то же для продажи
+  sellLimit: null,  // { bought, balance, max }
+  msg:       null,  // сообщение под панелью
+  wallet:    null   // { account, bought } | { key }
 };
 
 /* ── карточки метрик ───────────────────────────────────────────────────── */
@@ -1596,6 +1712,7 @@ function renderAddresses() {
   }
 
   $$('[data-field="currency"]').forEach((el) => { el.textContent = CONFIG.chain.currency.symbol; });
+  $$('[data-field="token"]').forEach((el) => { el.textContent = CONFIG.token.symbol; });
   $$('[data-field="rpc"]').forEach((el) => { el.textContent = rpcList()[0] || ''; });
   $$('[data-field="explorer"]').forEach((el) => { el.textContent = CONFIG.chain.explorer; });
 
@@ -1861,7 +1978,7 @@ function renderBuyMsg() {
   if (!m) return;
 
   if (m.hash) {
-    el.textContent = t('buy.sent');
+    el.textContent = t(m.sell ? 'sell.sent' : 'buy.sent');
     el.appendChild(linkEl(m.hash, ex.tx(m.hash)));
     return;
   }
@@ -2265,6 +2382,7 @@ async function showWallet() {
   };
   renderWallet();
   renderConnectButtons();
+  refreshSellLimit();
 }
 
 function walletError(e) {
@@ -2472,10 +2590,670 @@ async function doBuy() {
     view.msg = { hash, kind: 'ok' };
     renderBuyMsg();
 
-    setTimeout(() => { refresh(); showWallet(); }, 8000);
+    setTimeout(() => { refresh(); showWallet(); loadTrades(true); }, 8000);
   } catch (e) {
     buyMsgText(walletError(e), 'error');
   }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ *  ГРАФИК.
+ *
+ *  Источник данных ровно один — события Bought и Sold самой кривой, снятые
+ *  через eth_getLogs. Ни бэкенда, ни индексатора, ни котировок со стороны:
+ *  свеча существует только там, где на цепочке была сделка. Если сделок нет,
+ *  здесь пусто, и это честный ответ, а не повод дорисовать «историю».
+ *
+ *  Цена сделки считается так же, как её видит контракт: сумма в ETH без
+ *  комиссии, делённая на количество токенов. Это средняя цена исполнения —
+ *  та же величина, что в карточке spotPrice.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+const chart = {
+  tf: CONFIG.chart.defaultTf,
+  mode: 'candles',
+  trades: null,        // [{ts, priceWei, price, ethWei, tokens, kind, block, tx}]
+  scanned: null,       // { from, to } — какой диапазон блоков реально прочитан
+  loading: false,
+  errorText: null,
+  shape: null          // { p0, pFinal, inv, div } для режима кривой
+};
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function svgEl(tag, attrs) {
+  const el = document.createElementNS(SVG_NS, tag);
+  if (attrs) Object.keys(attrs).forEach((k) => el.setAttribute(k, String(attrs[k])));
+  return el;
+}
+
+/* ── чтение сделок с цепочки ───────────────────────────────────────────── */
+
+async function loadTrades(force = false) {
+  const C = CONFIG.contracts.curve;
+  if (!isSet(C)) { chart.errorText = t('chart.noCurve'); renderChart(); return; }
+  if (chart.loading) return;
+  if (chart.trades && !force) return;
+
+  chart.loading = true;
+  chart.errorText = null;
+  renderChart();
+
+  try {
+    const latest = Number(BigInt(await rpc('eth_blockNumber')));
+    const from = CONFIG.chart.curveDeployBlock;
+    const step = CONFIG.chart.logChunk;
+    const logs = [];
+
+    // Диапазон режем на куски: публичные узлы почти всегда ограничивают
+    // ширину окна eth_getLogs, и запрос «от развёртывания до latest» одним
+    // куском у части из них просто не пройдёт.
+    for (let start = from; start <= latest; start += step) {
+      const end = Math.min(start + step - 1, latest);
+      const part = await rpc('eth_getLogs', [{
+        address: C,
+        fromBlock: '0x' + start.toString(16),
+        toBlock: '0x' + end.toString(16),
+        topics: [[EVENTS.bought, EVENTS.sold]]
+      }]);
+      if (Array.isArray(part)) logs.push.apply(logs, part);
+    }
+
+    chart.trades = await decodeTrades(logs);
+    chart.scanned = { from, to: latest };
+  } catch (e) {
+    chart.trades = null;
+    chart.errorText = t('chart.failed', { reason: (e && e.message) || String(e) });
+  } finally {
+    chart.loading = false;
+    renderChart();
+  }
+}
+
+async function decodeTrades(logs) {
+  const blockTimes = new Map();
+  const rows = [];
+
+  logs.forEach((log) => {
+    const w = words(log.data);
+    if (w.length < 4 || !log.topics || !log.topics[0]) return;
+    const isBuy = log.topics[0].toLowerCase() === EVENTS.bought;
+
+    // Bought: ethIn, fee, tokensOut, newSold  →  в резерв ушло ethIn − fee
+    // Sold:   tokensIn, fee, ethOut, newSold  →  до вычета комиссии ethOut + fee
+    const ethWei = isBuy ? w[0] - w[1] : w[2] + w[1];
+    const tokens = isBuy ? w[2] : w[0];
+    if (tokens <= 0n || ethWei <= 0n) return;
+
+    const block = Number(BigInt(log.blockNumber));
+    blockTimes.set(block, null);
+
+    const priceWei = (ethWei * 10n ** 18n) / tokens;   // wei за один целый токен
+    rows.push({
+      kind: isBuy ? 'buy' : 'sell',
+      block,
+      tx: log.transactionHash,
+      priceWei,
+      price: Number(priceWei),
+      ethWei,
+      tokens
+    });
+  });
+
+  // Времени в логах нет — оно только в заголовке блока. Блоков со сделками
+  // на порядки меньше, чем блоков в сети, поэтому это единицы запросов.
+  const nums = Array.from(blockTimes.keys());
+  if (nums.length) {
+    const tasks = {};
+    nums.forEach((n) => { tasks[String(n)] = rpc('eth_getBlockByNumber', ['0x' + n.toString(16), false]); });
+    const got = await settle(tasks);
+    nums.forEach((n) => {
+      const r = got[String(n)];
+      blockTimes.set(n, r && r.ok && r.value && r.value.timestamp ? Number(BigInt(r.value.timestamp)) : null);
+    });
+  }
+
+  return rows
+    .map((r) => { r.ts = blockTimes.get(r.block); return r; })
+    .filter((r) => r.ts !== null && Number.isFinite(r.ts))
+    .sort((a, b) => a.ts - b.ts || a.block - b.block);
+}
+
+/* ── свечи ─────────────────────────────────────────────────────────────── */
+
+/**
+ * Сделки → OHLCV по интервалам. Промежутки без сделок заполняются плоскими
+ * свечами: без этого ось времени врала бы — две сделки с разницей в сутки
+ * встали бы вплотную, как соседние минуты.
+ */
+function buildCandles(trades, tfSec, limit) {
+  if (!trades || !trades.length) return [];
+  const bucketOf = (ts) => Math.floor(ts / tfSec) * tfSec;
+
+  const map = new Map();
+  trades.forEach((tr) => {
+    const b = bucketOf(tr.ts);
+    let c = map.get(b);
+    if (!c) { c = { t: b, o: tr.price, h: tr.price, l: tr.price, c: tr.price, v: 0, n: 0 }; map.set(b, c); }
+    if (tr.price > c.h) c.h = tr.price;
+    if (tr.price < c.l) c.l = tr.price;
+    c.c = tr.price;
+    c.v += Number(tr.ethWei) / 1e18;
+    c.n += 1;
+  });
+
+  const first = bucketOf(trades[0].ts);
+  const last = bucketOf(trades[trades.length - 1].ts);
+  const start = Math.max(first, last - (limit - 1) * tfSec);
+
+  // Цена переноса для первой пустой свечи окна — закрытие последней сделки,
+  // случившейся до окна.
+  let carry = null;
+  Array.from(map.keys()).sort((a, b) => a - b).forEach((b) => { if (b < start) carry = map.get(b).c; });
+
+  const out = [];
+  for (let b = start; b <= last; b += tfSec) {
+    const c = map.get(b);
+    if (c) { out.push(c); carry = c.c; }
+    else if (carry !== null) out.push({ t: b, o: carry, h: carry, l: carry, c: carry, v: 0, n: 0, empty: true });
+  }
+  return out;
+}
+
+const GWEI = 1e9;
+const fmtGwei = (wei) => (wei / GWEI).toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
+
+function fmtAxisTime(ts, tfSec) {
+  const d = new Date(ts * 1000);
+  try {
+    const opts = tfSec >= 86400
+      ? { day: '2-digit', month: 'short' }
+      : { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' };
+    return new Intl.DateTimeFormat(LOCALE[LANG], opts).format(d);
+  } catch (_) { return d.toISOString().slice(5, 16).replace('T', ' '); }
+}
+
+/* ── отрисовка ─────────────────────────────────────────────────────────── */
+
+function chartMessage(text) {
+  const box = $('#chart-empty');
+  const svg = $('#chart-svg');
+  if (!box) return;
+  if (!text) { box.hidden = true; return; }
+  box.hidden = false;
+  box.textContent = text;
+  if (svg) svg.textContent = '';
+}
+
+function renderChart() {
+  const svg = $('#chart-svg');
+  if (!svg) return;
+
+  $$('.seg-btn[data-tf]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.tf === chart.tf ? 'true' : 'false'));
+  $$('.seg-btn[data-mode]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.mode === chart.mode ? 'true' : 'false'));
+
+  // Переключатель интервала имеет смысл только для свечей.
+  const tfGroup = $('.seg-btn[data-tf]') ? $('.seg-btn[data-tf]').parentNode : null;
+  if (tfGroup) tfGroup.style.display = chart.mode === 'candles' ? '' : 'none';
+
+  svg.textContent = '';
+  const w = Math.max(320, Math.round(svg.clientWidth || svg.parentNode.clientWidth || 720));
+  const h = Math.max(200, Math.round(svg.clientHeight || 340));
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+  if (chart.mode === 'curve') { renderCurveMode(svg, w, h); return; }
+
+  if (chart.loading) { chartMessage(t('chart.loading')); setChartStatus(''); return; }
+  if (chart.errorText) { chartMessage(chart.errorText); setChartStatus(''); return; }
+  if (!chart.trades || !chart.trades.length) { chartMessage(t('chart.empty')); setChartStatus(''); return; }
+
+  const tfSec = TIMEFRAMES[chart.tf] || TIMEFRAMES['1h'];
+  const candles = buildCandles(chart.trades, tfSec, CONFIG.chart.maxCandles);
+  if (!candles.length) { chartMessage(t('chart.empty')); return; }
+
+  chartMessage(null);
+  drawCandles(svg, w, h, candles, tfSec);
+
+  setChartStatus(t('chart.status', {
+    trades: chart.trades.length,
+    candles: candles.length,
+    tf: chart.tf,
+    block: chart.scanned ? groupDigits(String(chart.scanned.from)) : '?'
+  }));
+  updateLastPrice(candles);
+}
+
+function drawCandles(svg, w, h, candles, tfSec) {
+  const padL = 8;
+  const padR = 62;               // ценовая шкала справа, как в торговых терминалах
+  const padT = 12;
+  const padB = 30;
+  const plotW = w - padL - padR;
+  const volH = Math.round((h - padT - padB) * 0.18);
+  const priceH = h - padT - padB - volH - 8;
+
+  let lo = Infinity;
+  let hi = -Infinity;
+  let volMax = 0;
+  candles.forEach((c) => { if (c.l < lo) lo = c.l; if (c.h > hi) hi = c.h; if (c.v > volMax) volMax = c.v; });
+  if (!(hi > lo)) { const pad = Math.max(hi * 0.001, 1); lo = hi - pad; hi = hi + pad; }
+  const span = hi - lo;
+  lo -= span * 0.08;
+  hi += span * 0.08;
+
+  const yOf = (p) => padT + priceH - ((p - lo) / (hi - lo)) * priceH;
+  const step = plotW / candles.length;
+  const bodyW = Math.max(1, Math.min(14, step * 0.68));
+
+  // сетка и ценовая шкала
+  const ticks = 5;
+  for (let i = 0; i <= ticks; i++) {
+    const p = lo + ((hi - lo) * i) / ticks;
+    const y = yOf(p);
+    svg.appendChild(svgEl('line', {class: 'ch-grid', x1: padL, y1: y, x2: padL + plotW, y2: y}));
+    const label = svgEl('text', {class: 'ch-axis', x: padL + plotW + 6, y: y + 3});
+    label.textContent = fmtGwei(p);
+    svg.appendChild(label);
+  }
+
+  // объём
+  candles.forEach((c, i) => {
+    if (!(c.v > 0) || volMax <= 0) return;
+    const bh = Math.max(1, (c.v / volMax) * volH);
+    svg.appendChild(svgEl('rect', {
+      class: 'ch-vol',
+      x: padL + i * step + (step - bodyW) / 2,
+      y: h - padB - bh,
+      width: bodyW,
+      height: bh
+    }));
+  });
+
+  // свечи
+  candles.forEach((c, i) => {
+    const cx = padL + i * step + step / 2;
+    const cls = c.empty ? 'ch-flat' : c.c > c.o ? 'ch-up' : c.c < c.o ? 'ch-down' : 'ch-flat';
+    svg.appendChild(svgEl('line', {class: `ch-wick ${cls}`, x1: cx, y1: yOf(c.h), x2: cx, y2: yOf(c.l)}));
+    const yTop = yOf(Math.max(c.o, c.c));
+    const bodyH = Math.max(1, Math.abs(yOf(c.o) - yOf(c.c)));
+    const r = svgEl('rect', {class: cls, x: cx - bodyW / 2, y: yTop, width: bodyW, height: bodyH});
+    if (c.empty) r.setAttribute('opacity', '0.35');
+    const title = svgEl('title');
+    title.textContent = `${fmtAxisTime(c.t, tfSec)} · O ${fmtGwei(c.o)} H ${fmtGwei(c.h)} L ${fmtGwei(c.l)} C ${fmtGwei(c.c)} gwei` +
+      (c.n ? ` · ${c.n}×` : '');
+    r.appendChild(title);
+    svg.appendChild(r);
+  });
+
+  // ось времени: подписи по краям и в середине, чтобы не сливались
+  [0, Math.floor(candles.length / 2), candles.length - 1].forEach((i, k) => {
+    if (i < 0 || i >= candles.length) return;
+    const x = padL + i * step + step / 2;
+    const el = svgEl('text', {
+      class: 'ch-axis',
+      x: Math.min(Math.max(x, padL + 2), padL + plotW - 2),
+      y: h - padB + 16,
+      'text-anchor': k === 0 ? 'start' : k === 2 ? 'end' : 'middle'
+    });
+    el.textContent = fmtAxisTime(candles[i].t, tfSec);
+    svg.appendChild(el);
+  });
+
+  const unit = svgEl('text', {class: 'ch-hint', x: padL + plotW + 6, y: h - padB + 16});
+  unit.textContent = 'gwei';
+  svg.appendChild(unit);
+}
+
+/* Режим «кривая»: цена как функция проданного объёма. Это не история, а
+   чистая функция контракта — она осмысленна даже когда сделок ещё нет. */
+async function loadCurveShape() {
+  if (chart.shape) return;
+  const C = CONFIG.contracts.curve;
+  const ch = view.chain;
+  if (!isSet(C) || !ch || ch.kind !== 'data' || !ch.r.inventory || !ch.r.inventory.ok) return;
+
+  const inv = uint(ch.r.inventory.value);
+  const [p0raw, pFinRaw] = await Promise.all([
+    ethCall(C, SEL.priceAt + argUint(0)),
+    ethCall(C, SEL.priceAt + argUint(inv))
+  ]);
+
+  const p0 = uint(p0raw);
+  const pFin = uint(pFinRaw);
+
+  // priceAt() отдаёт «сырую» цену, spotPrice() — цену целого токена в wei.
+  // Множитель между ними выводим из самой цепочки, а не вписываем константой.
+  const sold = ch.r.sold && ch.r.sold.ok ? uint(ch.r.sold.value) : 0n;
+  const spot = ch.r.spotPrice && ch.r.spotPrice.ok ? uint(ch.r.spotPrice.value) : 0n;
+  const rawNow = p0 + ((pFin - p0) * sold) / inv;
+  const div = spot > 0n ? rawNow / spot : 0n;
+  if (div <= 0n) return;
+
+  chart.shape = {
+    startWei: Number(p0 / div),
+    finalWei: Number(pFin / div),
+    inv: Number(inv) / 1e18,
+    sold: Number(sold) / 1e18,
+    spotWei: Number(spot)
+  };
+}
+
+function renderCurveMode(svg, w, h) {
+  const s = chart.shape;
+  if (!s) {
+    chartMessage(t('chart.curveWait'));
+    setChartStatus('');
+    loadCurveShape().then(() => { if (chart.mode === 'curve') renderChart(); }).catch(() => {});
+    return;
+  }
+  chartMessage(null);
+
+  const padL = 8;
+  const padR = 62;
+  const padT = 12;
+  const padB = 30;
+  const plotW = w - padL - padR;
+  const plotH = h - padT - padB;
+
+  const lo = s.startWei - (s.finalWei - s.startWei) * 0.08;
+  const hi = s.finalWei + (s.finalWei - s.startWei) * 0.08;
+  const yOf = (p) => padT + plotH - ((p - lo) / (hi - lo)) * plotH;
+  const xOf = (frac) => padL + frac * plotW;
+
+  for (let i = 0; i <= 5; i++) {
+    const p = lo + ((hi - lo) * i) / 5;
+    const y = yOf(p);
+    svg.appendChild(svgEl('line', {class: 'ch-grid', x1: padL, y1: y, x2: padL + plotW, y2: y}));
+    const label = svgEl('text', {class: 'ch-axis', x: padL + plotW + 6, y: y + 3});
+    label.textContent = fmtGwei(p);
+    svg.appendChild(label);
+  }
+
+  // Цена линейна по объёму, поэтому «кривая» — отрезок. Это и есть тезис:
+  // никаких экспонент, только трапеция.
+  svg.appendChild(svgEl('path', {
+    class: 'ch-area',
+    d: `M ${xOf(0)} ${yOf(s.startWei)} L ${xOf(1)} ${yOf(s.finalWei)} L ${xOf(1)} ${padT + plotH} L ${xOf(0)} ${padT + plotH} Z`
+  }));
+  svg.appendChild(svgEl('line', {
+    class: 'ch-curve', x1: xOf(0), y1: yOf(s.startWei), x2: xOf(1), y2: yOf(s.finalWei)
+  }));
+
+  const frac = s.inv > 0 ? s.sold / s.inv : 0;
+  const mx = xOf(frac);
+  const my = yOf(s.spotWei);
+  svg.appendChild(svgEl('line', {class: 'ch-grid', x1: mx, y1: padT, x2: mx, y2: padT + plotH}));
+  svg.appendChild(svgEl('circle', {class: 'ch-marker', cx: mx, cy: my, r: 4}));
+
+  const lbl = svgEl('text', {
+    class: 'ch-hint',
+    x: Math.min(mx + 8, padL + plotW - 4),
+    y: Math.max(my - 10, padT + 10)
+  });
+  lbl.textContent = `${(frac * 100).toFixed(4)}% · ${fmtGwei(s.spotWei)} gwei`;
+  svg.appendChild(lbl);
+
+  [[0, 'start'], [1, 'end']].forEach(([f, anchor]) => {
+    const el = svgEl('text', {class: 'ch-axis', x: xOf(f) + (f === 0 ? 2 : -2), y: h - padB + 16, 'text-anchor': anchor});
+    el.textContent = f === 0 ? '0' : groupDigits(String(Math.round(s.inv)));
+    svg.appendChild(el);
+  });
+  const cap = svgEl('text', {class: 'ch-hint', x: xOf(0.5), y: h - padB + 16, 'text-anchor': 'middle'});
+  cap.textContent = t('chart.axisSold');
+  svg.appendChild(cap);
+
+  setChartStatus(t('chart.curveNote'));
+  const last = $('#chart-last');
+  const chg = $('#chart-change');
+  if (last) last.textContent = fmtGwei(s.spotWei) + ' gwei';
+  if (chg) { chg.textContent = ''; chg.className = 'chg'; }
+}
+
+function setChartStatus(text) {
+  const el = $('#chart-status');
+  if (el) el.textContent = text || '';
+}
+
+function updateLastPrice(candles) {
+  const last = $('#chart-last');
+  const chg = $('#chart-change');
+  if (!last || !candles.length) return;
+  const first = candles[0];
+  const cur = candles[candles.length - 1];
+  last.textContent = fmtGwei(cur.c) + ' gwei';
+  const base = first.o;
+  if (!(base > 0)) { chg.textContent = ''; chg.className = 'chg'; return; }
+  const pct = ((cur.c - base) / base) * 100;
+  chg.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+  chg.className = 'chg' + (pct > 0 ? ' is-up' : pct < 0 ? ' is-down' : '');
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+ *  ПРОДАЖА.
+ *
+ *  Две транзакции: разрешение ровно на продаваемое количество и сама
+ *  продажа. Неограниченный approve не запрашивается никогда — если сделка
+ *  сорвётся, у контракта не останется права тратить остаток баланса.
+ *
+ *  Потолок продажи — не баланс токенов, а boughtOf(): кривая выкупает только
+ *  то, что этот же адрес у неё купил.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+function setPane(which) {
+  const isSell = which === 'sell';
+  const bp = $('#pane-buy');
+  const sp = $('#pane-sell');
+  if (bp) bp.hidden = isSell;
+  if (sp) sp.hidden = !isSell;
+  $$('.trade-tab').forEach((b) => b.setAttribute('aria-selected', b.dataset.pane === which ? 'true' : 'false'));
+  buyMsg(null);
+}
+
+/** Сколько этот адрес реально может продать кривой: min(boughtOf, balanceOf). */
+async function readSellLimit() {
+  const C = CONFIG.contracts.curve;
+  const T = CONFIG.contracts.token;
+  if (!state.account || !isSet(C) || !isSet(T)) return null;
+  const r = await settle({
+    bought: ethCall(C, SEL.boughtOf + argAddr(state.account)),
+    balance: ethCall(T, SEL.balanceOf + argAddr(state.account))
+  });
+  if (!r.bought.ok || !r.balance.ok) return null;
+  const bought = uint(r.bought.value);
+  const balance = uint(r.balance.value);
+  return { bought, balance, max: bought < balance ? bought : balance };
+}
+
+async function refreshSellLimit() {
+  const el = $('#sell-limit');
+  if (!el) return;
+  if (!state.account) { view.sellLimit = null; el.textContent = t('sell.limit.none'); return; }
+  const lim = await readSellLimit();
+  view.sellLimit = lim;
+  renderSellLimit();
+}
+
+function renderSellLimit() {
+  const el = $('#sell-limit');
+  if (!el) return;
+  if (!state.account) { el.textContent = t('sell.limit.none'); return; }
+  const lim = view.sellLimit;
+  if (!lim) { el.textContent = t('sell.limit.none'); return; }
+  const dec = CONFIG.token.decimals;
+  const sym = CONFIG.token.symbol;
+  if (lim.bought === 0n) { el.textContent = t('sell.limit.zero'); return; }
+  el.textContent = t('sell.limit', {
+    amount: formatUnits(lim.max, dec, 6),
+    bal: formatUnits(lim.balance, dec, 6),
+    sym
+  });
+}
+
+function readSellInputs() {
+  const amount = parseUnits($('#sell-amount').value, CONFIG.token.decimals);
+  if (amount <= 0n) throw new Error(t('input.positive'));
+  const slipBps = parseUnits($('#sell-slippage').value || '0', 2);
+  if (slipBps >= 10000n) throw new Error(t('input.slippage'));
+  const minutes = Number(String($('#sell-deadline').value).trim());
+  if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 1440) throw new Error(t('input.deadline'));
+  return { amount, slipBps, minutes };
+}
+
+function renderSellQuote() {
+  const out = $('#sell-quote-out');
+  const q = view.sellQuote;
+  if (!out) return;
+  if (!q) { out.hidden = true; out.textContent = ''; return; }
+
+  const gas = CONFIG.chain.currency.symbol;
+  const sym = CONFIG.token.symbol;
+  const rows = [
+    [t('sell.row.out'), `${formatUnits(q.ethOut, 18, 9)} ${gas}`],
+    [t('sell.row.min'), `${formatUnits(q.minEthOut, 18, 9)} ${gas}`],
+    [t('sell.row.fee'), `${formatUnits(q.fee, 18, 9)} ${gas}`],
+    [t('sell.row.avg'), t('quote.avg', { price: formatUnits(q.effective, 9), sym })]
+  ];
+
+  out.hidden = false;
+  out.textContent = '';
+  const dl = document.createElement('dl');
+  rows.forEach(([k, v]) => {
+    const dt = document.createElement('dt'); dt.textContent = k;
+    const dd = document.createElement('dd'); dd.textContent = v;
+    dl.append(dt, dd);
+  });
+  out.appendChild(dl);
+
+  if (q.warn) {
+    const p = document.createElement('p');
+    p.className = 'footnote';
+    p.textContent = q.warn;
+    out.appendChild(p);
+  }
+}
+
+async function sellQuote(silent = false) {
+  const C = CONFIG.contracts.curve;
+  if (!isSet(C)) { buyMsg('quote.noCurve', null, 'error'); return null; }
+
+  let inp;
+  try { inp = readSellInputs(); } catch (e) { buyMsgText(e.message, 'error'); return null; }
+  if (!silent) buyMsg('quote.working');
+
+  try {
+    const raw = await ethCall(C, SEL.previewSell + argUint(inp.amount));
+    const [ethOut, fee] = words(raw);
+    if (ethOut <= 0n) throw new Error(t('quote.tooSmall'));
+
+    const minEthOut = (ethOut * (10000n - inp.slipBps)) / 10000n;
+    const gross = ethOut + fee;
+    const effective = (gross * 10n ** 18n) / inp.amount;
+
+    // Потолок читаем заново: между открытием вкладки и расчётом адрес мог
+    // и докупить, и уже что-то продать.
+    const lim = await readSellLimit();
+    view.sellLimit = lim;
+    renderSellLimit();
+
+    let warn = null;
+    if (lim) {
+      const sym = CONFIG.token.symbol;
+      if (inp.amount > lim.balance) warn = t('sell.overBalance');
+      else if (inp.amount > lim.bought) warn = t('sell.overLimit', { amount: formatUnits(lim.bought, CONFIG.token.decimals, 6), sym });
+    }
+
+    view.sellQuote = { amount: inp.amount, ethOut, fee, minEthOut, effective, minutes: inp.minutes, warn };
+    renderSellQuote();
+
+    state.sellQuote = { amount: inp.amount, minEthOut, minutes: inp.minutes };
+    $('#do-sell').disabled = false;
+    if (!silent) buyMsg('quote.ok');
+    return state.sellQuote;
+  } catch (e) {
+    state.sellQuote = null;
+    $('#do-sell').disabled = true;
+    const reason = decodeRevert(e);
+    if (reason) buyMsgText(reason, 'error');
+    else buyMsg('quote.failed', { reason: (e && e.message) || String(e) }, 'error');
+    return null;
+  }
+}
+
+/** Ждём, пока разрешение окажется в блоке: без него sell() гарантированно упадёт. */
+async function waitReceipt(hash, timeoutMs = 150000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    try {
+      const r = await rpc('eth_getTransactionReceipt', [hash]);
+      if (r && r.blockNumber) return r;
+    } catch (_) { /* узел ещё не видит транзакцию — это норма */ }
+    await new Promise((res) => setTimeout(res, 3000));
+  }
+  return null;
+}
+
+async function doSell() {
+  const C = CONFIG.contracts.curve;
+  const T = CONFIG.contracts.token;
+  if (!isSet(C) || !isSet(T)) { buyMsg('buy.noCurve', null, 'error'); return; }
+  if (!hasWallet()) { $('#no-wallet').hidden = false; buyMsg('buy.noWallet', null, 'error'); return; }
+
+  try {
+    if (!state.account) { connect(); return; }
+    await ensureChain();
+
+    const q = await sellQuote(true);
+    if (!q) return;
+
+    const dec = CONFIG.token.decimals;
+    const sym = CONFIG.token.symbol;
+
+    // 1. Разрешение ровно на продаваемое количество — и только если текущего
+    //    не хватает. Лишняя транзакция никому не нужна.
+    const allowanceRaw = await ethCall(T, SEL.allowance + argAddr(state.account) + argAddr(C));
+    if (uint(allowanceRaw) < q.amount) {
+      buyMsg('sell.approving', { amount: formatUnits(q.amount, dec, 6), sym });
+      const approveHash = await activeProvider().request({
+        method: 'eth_sendTransaction',
+        params: [{
+          from: state.account,
+          to: T,
+          data: SEL.approve + argAddr(C) + argUint(q.amount)
+        }]
+      });
+      buyMsg('sell.approveWait');
+      const receipt = await waitReceipt(approveHash);
+      if (!receipt) { buyMsg('sell.approveFailed', null, 'error'); return; }
+    }
+
+    // 2. Сама продажа. Дедлайн считаем здесь, а не в котировке: между
+    //    расчётом и подтверждением разрешения могли пройти минуты.
+    const deadline = BigInt(Math.floor(Date.now() / 1000) + q.minutes * 60);
+    buyMsg('sell.confirmTx');
+
+    const hash = await activeProvider().request({
+      method: 'eth_sendTransaction',
+      params: [{
+        from: state.account,
+        to: C,
+        data: SEL.sell + argUint(q.amount) + argUint(q.minEthOut) + argUint(deadline)
+      }]
+    });
+
+    view.msg = { hash, kind: 'ok', sell: true };
+    renderBuyMsg();
+
+    setTimeout(() => { refresh(); showWallet(); refreshSellLimit(); loadTrades(true); }, 8000);
+  } catch (e) {
+    buyMsgText(walletError(e), 'error');
+  }
+}
+
+function fillSellPct(pct) {
+  const lim = view.sellLimit;
+  if (!lim || lim.max <= 0n) { buyMsg('sell.limit.zero', null, 'error'); return; }
+  const amount = (lim.max * BigInt(pct)) / 100n;
+  $('#sell-amount').value = formatUnits(amount, CONFIG.token.decimals).replace(/\s/g, '');
 }
 
 /* ── копирование адреса ────────────────────────────────────────────────── */
@@ -2546,6 +3324,9 @@ function setLang(lang) {
   renderSale();
   renderStatus();
   renderQuote();
+  renderSellQuote();
+  renderSellLimit();
+  renderChart();
   renderBuyMsg();
   renderWallet();
   // После applyI18n кнопки подключения снова подписаны «Connect wallet» —
@@ -2585,6 +3366,26 @@ function init() {
   $$('.chip[data-amount]').forEach((b) => {
     b.addEventListener('click', () => { $('#in-amount').value = b.dataset.amount; });
   });
+
+  /* — вкладки, продажа, график — */
+  $$('.trade-tab').forEach((b) => b.addEventListener('click', () => setPane(b.dataset.pane)));
+  $('#sell-quote').addEventListener('click', () => sellQuote());
+  $('#do-sell').addEventListener('click', () => doSell());
+  $$('.chip[data-sell-pct]').forEach((b) => {
+    b.addEventListener('click', () => fillSellPct(Number(b.dataset.sellPct)));
+  });
+
+  $$('.seg-btn[data-tf]').forEach((b) => b.addEventListener('click', () => { chart.tf = b.dataset.tf; renderChart(); }));
+  $$('.seg-btn[data-mode]').forEach((b) => b.addEventListener('click', () => { chart.mode = b.dataset.mode; renderChart(); }));
+  $('#chart-reload').addEventListener('click', () => loadTrades(true));
+
+  // Ширину графика знает только лейаут, поэтому перерисовываем на ресайзе.
+  // Дребезг гасим таймером: тянуть окно мышью — это сотни событий подряд.
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => renderChart(), 150);
+  });
   $$('.lang-btn').forEach((b) => b.addEventListener('click', () => setLang(b.dataset.lang)));
 
   // Копирование — делегированием: кнопок несколько, и часть из них рисуется
@@ -2613,6 +3414,8 @@ function init() {
   }, 400);
 
   refresh();
+  renderChart();
+  loadTrades();
 
   if (CONFIG.ui.autoRefreshMs > 0) {
     setInterval(() => {

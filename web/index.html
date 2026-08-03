@@ -526,6 +526,42 @@
     2 = 1 + 1/2 + 1/4 + …) and sells them at a linearly rising price.
   </p>
 
+  <!-- График. Свечи строятся из событий Bought/Sold самой кривой, прочитанных
+       через eth_getLogs. Никакого бэкенда и никакого индексатора: если сделок
+       нет, здесь честно пусто, а не нарисованная «история». -->
+  <div class="chart-card">
+    <div class="chart-head">
+      <div class="chart-price">
+        <span class="k" data-i18n="chart.last">Last trade price</span>
+        <span class="v" id="chart-last">—</span>
+        <span class="chg" id="chart-change"></span>
+      </div>
+      <div class="chart-controls">
+        <div class="seg" role="group" data-i18n-aria="chart.tf.aria" aria-label="Timeframe">
+          <button type="button" class="seg-btn" data-tf="5m">5m</button>
+          <button type="button" class="seg-btn" data-tf="15m">15m</button>
+          <button type="button" class="seg-btn" data-tf="1h" aria-pressed="true">1H</button>
+          <button type="button" class="seg-btn" data-tf="4h">4H</button>
+          <button type="button" class="seg-btn" data-tf="1d">1D</button>
+        </div>
+        <div class="seg" role="group" data-i18n-aria="chart.mode.aria" aria-label="Chart mode">
+          <button type="button" class="seg-btn" data-mode="candles" aria-pressed="true" data-i18n="chart.mode.candles">Candles</button>
+          <button type="button" class="seg-btn" data-mode="curve" data-i18n="chart.mode.curve">Curve</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-body">
+      <svg id="chart-svg" role="img" data-i18n-aria="chart.aria" aria-label="Price chart"></svg>
+      <p class="chart-empty" id="chart-empty" hidden></p>
+    </div>
+
+    <div class="chart-foot">
+      <span id="chart-status"></span>
+      <button id="chart-reload" type="button" class="btn btn-ghost" data-i18n="chart.reload">Reload trades</button>
+    </div>
+  </div>
+
   <ul class="rules">
     <li data-i18n-html="buy.rule.trapezoid"><strong>The price rises linearly, so the cost of a purchase is the area of a trapezoid.</strong> Integer multiplication and division only, no exponential approximations. The formula can be recomputed on paper.</li>
     <li data-i18n-html="buy.rule.ratio"><strong>From the first token to the last, the price rises by exactly a factor of <span class="mono">e</span>:</strong> from 2 gwei to 5.436563656918090470 gwei per whole token. The ratio can be verified on-chain with a single division, because the arithmetic is integer.</li>
@@ -557,34 +593,77 @@
       </div>
     </div>
 
-    <div class="quick-row">
-      <button type="button" class="chip" data-amount="0.01">0.01</button>
-      <button type="button" class="chip" data-amount="0.05">0.05</button>
-      <button type="button" class="chip" data-amount="0.1">0.1</button>
-      <button type="button" class="chip" id="amount-max" data-i18n="buy.quick.max" data-i18n-title="buy.quick.maxHint">Max</button>
+    <div class="trade-tabs" role="tablist" data-i18n-aria="trade.tabs.aria" aria-label="Buy or sell">
+      <button type="button" class="trade-tab" id="tab-buy" role="tab" aria-selected="true" aria-controls="pane-buy" data-pane="buy" data-i18n="buy.action.buy">Buy</button>
+      <button type="button" class="trade-tab" id="tab-sell" role="tab" aria-selected="false" aria-controls="pane-sell" data-pane="sell" data-i18n="trade.sell">Sell</button>
     </div>
 
-    <div class="buy-form">
-      <div class="field">
-        <label for="in-amount" data-i18n-html="buy.field.amount">Amount in <span data-field="currency">ETH</span></label>
-        <input id="in-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.01" spellcheck="false">
+    <div id="pane-buy" class="trade-pane" role="tabpanel" aria-labelledby="tab-buy">
+      <div class="quick-row">
+        <button type="button" class="chip" data-amount="0.01">0.01</button>
+        <button type="button" class="chip" data-amount="0.05">0.05</button>
+        <button type="button" class="chip" data-amount="0.1">0.1</button>
+        <button type="button" class="chip" id="amount-max" data-i18n="buy.quick.max" data-i18n-title="buy.quick.maxHint">Max</button>
       </div>
-      <div class="field">
-        <label for="in-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
-        <input id="in-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
+
+      <div class="buy-form">
+        <div class="field">
+          <label for="in-amount" data-i18n-html="buy.field.amount">Amount in <span data-field="currency">ETH</span></label>
+          <input id="in-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.01" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="in-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
+          <input id="in-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="in-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
+          <input id="in-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
+        </div>
       </div>
-      <div class="field">
-        <label for="in-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
-        <input id="in-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
+
+      <div class="buy-actions">
+        <button id="quote" type="button" class="btn" data-i18n="buy.action.quote">Get quote</button>
+        <button id="do-buy" type="button" class="btn btn-primary" data-i18n="buy.action.buy" disabled>Buy</button>
       </div>
+
+      <div id="quote-out" class="quote-out" hidden></div>
     </div>
 
-    <div class="buy-actions">
-      <button id="quote" type="button" class="btn" data-i18n="buy.action.quote">Get quote</button>
-      <button id="do-buy" type="button" class="btn btn-primary" data-i18n="buy.action.buy" disabled>Buy</button>
+    <!-- Продажа. Кривая выкупает только то, что у неё куплено этим же адресом,
+         поэтому потолок здесь — boughtOf(), а не баланс токенов. -->
+    <div id="pane-sell" class="trade-pane" role="tabpanel" aria-labelledby="tab-sell" hidden>
+      <p class="pane-note" id="sell-limit" data-i18n="sell.limit.none">Connect a wallet to see how much the curve owes you a buy-back for.</p>
+
+      <div class="quick-row">
+        <button type="button" class="chip" data-sell-pct="25">25%</button>
+        <button type="button" class="chip" data-sell-pct="50">50%</button>
+        <button type="button" class="chip" data-sell-pct="100" data-i18n="buy.quick.max" data-i18n-title="sell.quick.maxHint">Max</button>
+      </div>
+
+      <div class="buy-form">
+        <div class="field">
+          <label for="sell-amount" data-i18n-html="sell.field.amount">Amount in <span data-field="token">MACLRN</span></label>
+          <input id="sell-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="sell-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
+          <input id="sell-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="sell-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
+          <input id="sell-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
+        </div>
+      </div>
+
+      <div class="buy-actions">
+        <button id="sell-quote" type="button" class="btn" data-i18n="buy.action.quote">Get quote</button>
+        <button id="do-sell" type="button" class="btn btn-primary" data-i18n="trade.sell" disabled>Sell</button>
+      </div>
+
+      <div id="sell-quote-out" class="quote-out" hidden></div>
+      <p class="footnote" data-i18n="sell.approveNote">Selling takes two transactions: an allowance for exactly the amount being sold, then the sale itself. The page never asks for an unlimited approve.</p>
     </div>
 
-    <div id="quote-out" class="quote-out" hidden></div>
     <p id="buy-message" class="buy-message" role="status" aria-live="polite"></p>
   </div>
 
@@ -606,9 +685,10 @@
   <details class="table-details">
     <summary data-i18n="buy.sell.summary">How to sell back to the curve</summary>
     <p data-i18n-html="buy.sell.p1">
-      Selling takes two transactions, and there is deliberately no widget for it
-      here: a static page has no business asking for an unlimited
-      <code>approve</code>. The order is:
+      The Sell tab above does this for you, but the site is not required for it:
+      the same two calls are available in the explorer, and the allowance is for
+      exactly the amount being sold — never an unlimited <code>approve</code>.
+      The order is:
     </p>
     <ol class="rules">
       <li data-i18n-html="buy.sell.step1"><code>approve(curve address, amount)</code> on the token contract — grant an allowance for exactly the amount being sold;</li>
