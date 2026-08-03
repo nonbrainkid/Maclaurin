@@ -1,0 +1,16 @@
+{
+  "name": "maclaurin-brand",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Оформление проекта: аватар, шапка X, баннер YouTube. Рендерится в PNG через Remotion.",
+  "scripts": {
+    "studio": "remotion studio src/index.jsx",
+    "build": "remotion still src/index.jsx Avatar assets/avatar.png --image-format=png && remotion still src/index.jsx XBanner assets/x-banner.png --image-format=png && remotion still src/index.jsx YouTubeBanner assets/youtube-banner.png --image-format=png"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.505",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "remotion": "^4.0.505"
+  }
+}
