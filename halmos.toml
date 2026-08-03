@@ -1,0 +1,43 @@
+# halmos (a16z) configuration -- symbolic execution on top of Foundry tests.
+#
+# NOTE: this file is intentionally ASCII-only. halmos 0.3.3 opens it with the
+# platform default encoding, which is cp1252 on Windows, so any non-ASCII byte
+# here crashes the tool before it starts. The full rationale for every value
+# below is in README.md, section "Machine-checked proofs" -- in Russian, where
+# an encoding bug cannot break the build.
+#
+# halmos does NOT read [profile.default.halmos] from foundry.toml: its config
+# path is <root>/halmos.toml (see `halmos --help`, --config). Build settings
+# (solc 0.8.24, evm_version shanghai, optimizer) still come from foundry.toml,
+# because halmos invokes `forge build` itself.
+
+[global]
+
+# Loop unrolling bound. This is the ONE setting that decides whether the result
+# is a complete proof or a check up to depth N.
+#
+# 26 is exact, not generous. Both loops in MaclaurinEmission are bounded by
+# immutable bytecode constants: totalEmittable() runs exactly 25 iterations
+# (FIRST_EPOCH..LAST_EPOCH) and _project() cannot exceed 25 segments because it
+# stops at emissionEnd. At --loop 26 halmos unrolls both completely and reports
+# no bound-reached warning, so "bounded symbolic execution" coincides with
+# exhaustive here.
+#
+# The ~90-iteration binary search in MaclaurinCurve._tokensFor is explicitly OUT
+# of scope -- 2^90 paths. See README for what that does and does not leave open.
+loop = 26
+
+# Yices is faster than z3 on the bitvector arithmetic that dominates here.
+solver = "yices"
+
+# Per-assertion solver budget, ms. Without it a nonlinear query (the trapezoid
+# area in MaclaurinCurve) hangs forever and "did not finish" becomes
+# indistinguishable from "holds".
+solver-timeout-assertion = 300000
+
+# Branch conditions must be decided quickly; if they are not, the path is sick.
+solver-timeout-branching = 20000
+
+# No cap on the number of paths: any nonzero bound would silently turn a proof
+# into a sample.
+width = 0

@@ -1,0 +1,5 @@
+{
+  "exclude_dependencies": true,
+  "detectors_to_exclude": "timestamp,incorrect-equality,pragma",
+  "fail_on": "low"
+}

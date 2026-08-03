@@ -1,0 +1,41 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+solc = "0.8.24"
+
+# Консервативный выбор: код не использует transient storage (EIP-1153),
+# поэтому cancun не нужен. shanghai гарантированно поддержан любой EVM-сетью,
+# включая Robinhood Chain (Arbitrum Nitro). Для НЕИЗМЕНЯЕМОГО контракта
+# совместимость важнее пары единиц газа — переделать деплой будет нельзя.
+evm_version = "shanghai"
+
+optimizer = true
+optimizer_runs = 1000000
+
+[fmt]
+line_length = 110
+tab_width = 4
+bracket_spacing = false
+int_types = "long"
+
+[fuzz]
+runs = 512
+
+[invariant]
+runs = 256
+depth = 64
+fail_on_revert = false
+
+[rpc_endpoints]
+# Robinhood Chain. Публичные узлы, ключ не нужен. Проверены `cast chain-id`:
+# 4663 (mainnet) и 46630 (testnet), клиент nitro/v3.11.3.
+rh = "https://rpc.mainnet.chain.robinhood.com"
+rh_testnet = "https://rpc.testnet.chain.robinhood.com/rpc"
+
+[etherscan]
+# Верификация идёт через Blockscout, а не Etherscan: у сети нет Etherscan-инстанса.
+# Секция всё равно называется [etherscan] — так устроен foundry, это не опечатка.
+# Ключ не требуется, но поле обязано присутствовать, поэтому стоит заглушка.
+rh = {key = "unused", chain = 4663, url = "https://robinhoodchain.blockscout.com/api/"}
+rh_testnet = {key = "unused", chain = 46630, url = "https://explorer.testnet.chain.robinhood.com/api/"}
