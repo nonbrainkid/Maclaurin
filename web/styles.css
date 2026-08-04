@@ -521,7 +521,7 @@ h1 .mono { font-weight: 500; letter-spacing: -0.01em; }
   border-top: 1px solid var(--line);
 }
 .facts > div {
-  padding: 1.1rem 1.25rem 1.1rem 0;
+  padding: 1.1rem 1.5rem;
   border-right: 1px solid var(--line);
 }
 .facts > div:last-child { border-right: none; }

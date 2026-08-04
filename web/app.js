@@ -4690,12 +4690,7 @@ window.addEventListener('scroll', () => {
     // Check if we already know who the admin is
     if (!adminAddr) {
       try {
-        const p = activeProvider();
-        if (!p) return;
-        const res = await p.request({
-          method: 'eth_call',
-          params: [{ to: curve, data: ABI.feeRecipient }, 'latest']
-        });
+        const res = await ethCall(curve, ABI.feeRecipient);
         if (res && res !== '0x') {
           adminAddr = '0x' + res.slice(-40);
         }
@@ -4769,11 +4764,7 @@ window.addEventListener('scroll', () => {
   async function updateAdminStats() {
     if (!adminPanel || !state.account) return;
     try {
-      const p = activeProvider();
-      const res = await p.request({
-        method: 'eth_call',
-        params: [{ to: curve, data: ABI.feesAccrued }, 'latest']
-      });
+      const res = await ethCall(curve, ABI.feesAccrued);
       const ethWei = BigInt(res === '0x' ? '0' : res);
       const ethVal = formatAmount(ethWei, 18, 6);
       
