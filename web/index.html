@@ -7,6 +7,9 @@
 <meta name="description" content="An ERC-20 whose issuance schedule is literally the Maclaurin series for e. Supply is bounded by arithmetic, not by policy: 2 718 281 828.459045235360287471 tokens. Emission stops on its own at epoch 27.">
 <meta name="color-scheme" content="dark light">
 <meta name="referrer" content="no-referrer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -61,6 +64,22 @@
         <a class="social" id="social-gh" href="https://github.com/nonbrainkid/Maclaurin" target="_blank" rel="noopener noreferrer" data-i18n-aria="social.gh.aria" aria-label="GitHub">
           <svg aria-hidden="true"><use href="#i-gh"></use></svg>
         </a>
+      </div>
+
+      <div class="theme-switch" role="group" aria-label="Theme">
+        <button type="button" class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+          <svg id="theme-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+        </button>
       </div>
 
       <div class="lang-switch" role="group" data-i18n-aria="lang.aria" aria-label="Language">
@@ -564,6 +583,7 @@
           <button type="button" class="seg-btn" data-mode="candles" aria-pressed="true" data-i18n="chart.mode.candles">Candles</button>
           <button type="button" class="seg-btn" data-mode="curve" data-i18n="chart.mode.curve">Curve</button>
         </div>
+        <button id="chart-reset-zoom" type="button" class="btn btn-ghost" aria-label="Reset zoom" hidden style="padding: 4px 8px;">Reset Zoom</button>
       </div>
     </div>
 
@@ -964,6 +984,7 @@
   <p class="wm-foot" data-i18n="wm.foot">The page never sees your keys. Connecting only shares your address; every transaction is signed in the wallet itself.</p>
 </dialog>
 
+<div id="toast-container" class="toast-container"></div>
 <script src="app.js"></script>
 </body>
 </html>

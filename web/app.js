@@ -4488,3 +4488,97 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
+// --- PREMIUM UPGRADES APPLIED HERE ---
+
+// 1. Theme Toggler
+(function() {
+  const toggle = document.getElementById('theme-toggle');
+  const root = document.documentElement;
+  const saved = localStorage.getItem('theme') || 'light';
+  root.setAttribute('data-theme', saved);
+  
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      const current = root.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+  }
+})();
+
+// 2. Fade In Microanimations
+(function() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.05 });
+
+  document.querySelectorAll('section.wrap, .sale-card, .metric, .address-block').forEach(el => {
+    el.classList.add('fade-in');
+    observer.observe(el);
+  });
+})();
+
+// 3. Toasts for Buy/Sell Messages
+let _lastToastMsg = '';
+const _originalRenderBuyMsg = renderBuyMsg;
+renderBuyMsg = function() {
+  _originalRenderBuyMsg();
+  const el = document.getElementById('buy-message');
+  if (el && el.textContent) {
+    const html = el.innerHTML;
+    if (html !== _lastToastMsg) {
+      showToast(html, el.className.includes('err') ? 'error' : 'success');
+      _lastToastMsg = html;
+    }
+    el.style.display = 'none'; // Hide the static one
+  } else {
+    _lastToastMsg = '';
+  }
+};
+
+function showToast(html, type) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + (type === 'error' ? 'is-error' : 'is-success');
+  toast.innerHTML = html;
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('is-visible'));
+  setTimeout(() => {
+    toast.classList.remove('is-visible');
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}
+
+// 4. Chart Reset Zoom Button
+(function() {
+  const resetBtn = document.getElementById('chart-reset-zoom');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (typeof resetView === 'function' && typeof renderChart === 'function') {
+        resetView();
+        renderChart();
+      }
+    });
+    // Optional: show button only when zoomed? 
+    // It's hidden by default in HTML. The user didn't ask for dynamic visibility, but let's make it always visible if chart mode is candles.
+    resetBtn.hidden = false;
+  }
+})();
+
+
+const _originalRenderChart = renderChart;
+renderChart = function() {
+  _originalRenderChart();
+  const resetBtn = document.getElementById('chart-reset-zoom');
+  if (resetBtn) {
+    resetBtn.style.display = chart.mode === 'candles' ? '' : 'none';
+  }
+};
