@@ -346,7 +346,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
   background: var(--accent); 
   border-color: var(--accent); 
   color: #fff; 
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 40%, transparent);
+  box-shadow: var(--shadow);
 }
 .btn-lg { font-size: .95rem; padding: .62rem 1.15rem; }
 .btn-block { width: 100%; }
@@ -388,8 +388,8 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
   background: var(--ink-3);
   flex: 0 0 auto;
 }
-.dot.is-live { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 18%, transparent); }
-.dot.is-down { background: var(--err); box-shadow: 0 0 0 3px color-mix(in srgb, var(--err) 18%, transparent); }
+.dot.is-live { background: var(--ok); }
+.dot.is-down { background: var(--err); }
 
 h1 .mono { font-weight: 500; letter-spacing: -0.01em; }
 
@@ -430,11 +430,7 @@ h1 .mono { font-weight: 500; letter-spacing: -0.01em; }
   overflow: hidden;
 }
 .sale-card::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  opacity: 0.5;
+  display: none;
 }
 @media (max-width: 62rem) { .sale-card { position: static; } }
 
@@ -491,9 +487,8 @@ h1 .mono { font-weight: 500; letter-spacing: -0.01em; }
   height: 100%;
   width: 0;
   min-width: 0;
-  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 80%, #fff));
+  background: var(--accent);
   transition: width .6s cubic-bezier(.2, .7, .3, 1);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .sale-rows { margin: 1.15rem 0 0; display: grid; gap: .1rem; }
@@ -608,12 +603,7 @@ h1 .mono { font-weight: 500; letter-spacing: -0.01em; }
   overflow: hidden;
 }
 .metric::before {
-  content: "";
-  position: absolute;
-  bottom: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, transparent, var(--line-2), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  display: none;
 }
 .metric:hover {
   transform: translateY(-3px);
@@ -1159,10 +1149,9 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
   outline: none;
   border-color: var(--accent);
   background: var(--surface);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
-.buy-actions { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.15rem; }
+
 
 .quote-out {
   margin-top: 1.15rem;
@@ -1364,7 +1353,7 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
      никуда не деваются — они в hero и в подвале. */
   .socials { display: none; }
   .brand-mark, .brand-ticker { display: none; }
-  .buy-actions .btn { flex: 1 1 100%; }
+
   .hero-actions .btn { flex: 1 1 100%; }
   .status-bar { font-size: .74rem; }
   .contract-acts .btn { flex: 1 1 auto; }
@@ -1460,7 +1449,6 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
   --accent-soft: #f5ece3;
 }
 :root[data-theme="dark"] .sale-card {
-  box-shadow: 0 0 30px -10px color-mix(in srgb, var(--accent) 40%, transparent), inset 0 0 0 1px rgba(255,255,255,0.03);
   border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
 }
 :root[data-theme="dark"] {
