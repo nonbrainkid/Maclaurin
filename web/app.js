@@ -1864,14 +1864,14 @@ function linkEl(text, href) {
 }
 
 function renderAddresses() {
-  const C = CONFIG.contracts.curve;
+  const T = CONFIG.contracts.token;
 
-  $('#curve-address').textContent = isSet(C) ? C : ZERO_ADDR + t('addr.pending');
+  $('#curve-address').textContent = isSet(T) ? T : ZERO_ADDR + t('addr.pending');
 
   const curveLinks = $('#curve-links');
   curveLinks.textContent = '';
-  if (isSet(C)) {
-    [[t('link.source'), ex.code(C)], [t('link.read'), ex.read(C)], [t('link.write'), ex.write(C)]]
+  if (isSet(T)) {
+    [[t('link.source'), ex.code(T)], [t('link.read'), ex.read(T)], [t('link.write'), ex.write(T)]]
       .forEach(([text, href]) => curveLinks.appendChild(linkEl(text, href)));
   } else {
     curveLinks.textContent = t('link.curvePending');
@@ -4338,11 +4338,7 @@ function setLang(lang) {
   // Динамические куски — из сохранённых сырых данных, без единого запроса.
   renderChainBanner();
   renderAddresses();
-  renderContracts();
-  renderVerifyCommands();
-  renderLinkGrid();
   renderChain();
-  renderSale();
   renderMarket();
   renderStatus();
   renderQuote();
