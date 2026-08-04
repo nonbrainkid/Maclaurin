@@ -163,7 +163,11 @@ const SEL = {
   // ERC-20, нужны для продажи: разрешение выдаётся ровно на продаваемое
   // количество, поэтому allowance читается перед каждой сделкой.
   approve:      '0x095ea7b3', // approve(address,uint256)
-  allowance:    '0xdd62ed3e'  // allowance(address,address)
+  allowance:    '0xdd62ed3e', // allowance(address,address)
+  // Admin fees
+  feeRecipient: '0x46904840', // feeRecipient()
+  feesAccrued:  '0x94db0595', // feesAccrued()
+  withdrawFees: '0x476343ee'  // withdrawFees()
 };
 
 /* Топики событий кривой = keccak256 от сигнатуры события (cast keccak).
@@ -4664,4 +4668,142 @@ window.addEventListener('scroll', () => {
       sellTimer = setTimeout(() => { sellQuoteBtn.click(); }, 600);
     });
   }
+})();
+
+;(function() {
+  const container = document.getElementById('admin-container');
+  if (!container) return;
+
+  let adminPanel = null;
+  let adminAddr = null;
+
+  async function checkAdmin() {
+    if (!state.account) {
+      if (adminPanel) { adminPanel.remove(); adminPanel = null; }
+      return;
+    }
+    
+    // Check if we already know who the admin is
+    if (!adminAddr) {
+      try {
+        const p = activeProvider();
+        if (!p) return;
+        const res = await p.request({
+          method: 'eth_call',
+          params: [{ to: curve, data: ABI.feeRecipient }, 'latest']
+        });
+        if (res && res !== '0x') {
+          adminAddr = '0x' + res.slice(-40);
+        }
+      } catch (e) {
+        return;
+      }
+    }
+
+    if (!adminAddr || state.account.toLowerCase() !== adminAddr.toLowerCase()) {
+      if (adminPanel) { adminPanel.remove(); adminPanel = null; }
+      return;
+    }
+
+    if (!adminPanel) {
+      adminPanel = document.createElement('section');
+      adminPanel.id = 'admin-panel';
+      adminPanel.className = 'wrap admin-panel';
+      
+      const html = `
+        <h2 class="admin-title">Creator fees</h2>
+        <p class="admin-subtitle">Pool fees accrue without unlocking the permanent liquidity position.</p>
+        <div class="admin-stats">
+          <div class="admin-stat-box">
+            <span class="admin-stat-title">Accrued ETH</span>
+            <span class="admin-stat-value" id="admin-accrued-eth">—</span>
+            <span class="admin-stat-usd" id="admin-accrued-usd">$0.00</span>
+          </div>
+        </div>
+        <div class="admin-foot">
+          <div class="admin-address">Payout wallet<br><span class="admin-address-val">${shortAddr(adminAddr)}</span></div>
+          <button id="admin-claim-btn" class="btn btn-primary btn-block admin-claim-btn" disabled>No fees to claim</button>
+        </div>
+      `;
+      adminPanel.innerHTML = html;
+      container.appendChild(adminPanel);
+
+      const claimBtn = document.getElementById('admin-claim-btn');
+      claimBtn.addEventListener('click', async () => {
+        try {
+          claimBtn.disabled = true;
+          claimBtn.textContent = 'Pending...';
+          const p = activeProvider();
+          
+          // Estimate gas to catch reverts early
+          try {
+            await p.request({
+              method: 'eth_estimateGas',
+              params: [{ from: state.account, to: curve, data: ABI.withdrawFees }]
+            });
+          } catch(err) {
+            throw new Error('Transaction will fail (no fees or not admin).');
+          }
+
+          const txHash = await p.request({
+            method: 'eth_sendTransaction',
+            params: [{ from: state.account, to: curve, data: ABI.withdrawFees }]
+          });
+          showToast('Fees claimed successfully: ' + shortAddr(txHash), 'success');
+          setTimeout(updateAdminStats, 2000);
+        } catch (e) {
+          showToast(e.message || 'Transaction failed', 'error');
+        } finally {
+          updateAdminStats();
+        }
+      });
+    }
+
+    updateAdminStats();
+  }
+
+  async function updateAdminStats() {
+    if (!adminPanel || !state.account) return;
+    try {
+      const p = activeProvider();
+      const res = await p.request({
+        method: 'eth_call',
+        params: [{ to: curve, data: ABI.feesAccrued }, 'latest']
+      });
+      const ethWei = BigInt(res === '0x' ? '0' : res);
+      const ethVal = formatAmount(ethWei, 18, 6);
+      
+      const ethEl = document.getElementById('admin-accrued-eth');
+      const usdEl = document.getElementById('admin-accrued-usd');
+      const btn = document.getElementById('admin-claim-btn');
+      
+      if (ethEl) ethEl.textContent = ethVal;
+      
+      if (usdEl) {
+        if (state.usdRate > 0) {
+          const usdVal = (Number(formatAmount(ethWei, 18, 18)) * state.usdRate).toFixed(2);
+          usdEl.textContent = '$' + usdVal;
+        } else {
+          usdEl.textContent = '';
+        }
+      }
+      
+      if (btn) {
+        if (ethWei > 0n) {
+          btn.disabled = false;
+          btn.textContent = 'Take fees';
+        } else {
+          btn.disabled = true;
+          btn.textContent = 'No fees to claim';
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // Hook into provider events to re-check
+  setInterval(() => {
+    checkAdmin();
+  }, 2000);
 })();
