@@ -427,7 +427,6 @@ h1 .mono { font-weight: 500; letter-spacing: -0.01em; }
   top: calc(var(--header-h) + 1.25rem);
   box-shadow: var(--shadow);
   transition: box-shadow 0.3s ease, border-color 0.3s ease;
-  position: relative;
   overflow: hidden;
 }
 .sale-card::before {
@@ -1503,7 +1502,43 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
 .chart-body { height: 420px; transition: height 0.3s ease; }
 .chart-card.chart-compact .chart-body { height: 280px; }
 .chart-card.chart-expanded .chart-body { height: 80vh; }
-.buy-actions-main { display: flex; gap: .5rem; margin-top: .75rem; }
-.buy-settings { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--line); display: grid; gap: .75rem; }
-.field-main input { font-size: 1.25rem; padding: .85rem 1rem; }
+
+.slippage-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: .75rem;
+  padding: .5rem .75rem;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  font-size: .82rem;
+  color: var(--ink-2);
+}
+.slippage-label strong { color: var(--ink); margin-left: .25rem; }
+.btn-settings {
+  font: inherit;
+  font-size: .78rem;
+  color: var(--ink-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: .2rem .4rem;
+  border-radius: var(--r-sm);
+}
+.btn-settings:hover { color: var(--accent); background: var(--surface); }
+.settings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+}
+.buy-settings {
+  margin-top: .75rem;
+  padding-top: .75rem;
+  border-top: 1px solid var(--line);
+}
+.field-main input {
+  font-size: 1.35rem;
+  padding: .85rem 1rem;
+  font-family: var(--mono);
+}
 

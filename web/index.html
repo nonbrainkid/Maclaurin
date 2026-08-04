@@ -610,25 +610,6 @@
     </div>
   </div>
 
-  <ul class="rules">
-    <li data-i18n-html="buy.rule.trapezoid"><strong>The price rises linearly, so the cost of a purchase is the area of a trapezoid.</strong> Integer multiplication and division only, no exponential approximations. The formula can be recomputed on paper.</li>
-    <li data-i18n-html="buy.rule.ratio"><strong>From the first token to the last, the price rises by exactly a factor of <span class="mono">e</span>:</strong> from 2 gwei to 5.436563656918090470 gwei per whole token. The ratio can be verified on-chain with a single division, because the arithmetic is integer.</li>
-    <li data-i18n-html="buy.rule.fee"><strong>A flat 1% fee in ETH</strong> — a constant, not a variable. It is taken before the reserve is credited on a buy, and out of the already-reduced amount on a sell, so the reserve never funds the fee.</li>
-    <li data-i18n-html="buy.rule.buyback"><strong>The curve is not an exchange: you can only sell back to it what you bought from it.</strong> The purchase right is tied to the address (<code>boughtOf(address)</code>) and does not travel with an ordinary transfer. Otherwise a holder of free genesis tokens or staking rewards would walk off with the buyers' ETH. Tokens acquired anywhere other than the curve are sold on a secondary market, not here.</li>
-    <li data-i18n-html="buy.rule.nodiscretion"><strong>Nothing in the sell path depends on anyone's decision:</strong> only your balance, your own slippage protection and a deadline that has not expired. No pauses, no lists, no cooldown.</li>
-    <li data-i18n-html="buy.rule.antisnipe"><strong>The anti-snipe window has already expired.</strong> It capped purchases at 10 000 000 tokens per address for the first hour after the curve was deployed (<code>antiSnipeEnd()</code> — check it on-chain). That hour is over and no purchase was made during it, so the cap applies to nothing: right now a single transaction can buy the entire remaining inventory. The cap was a mitigation rather than a defence in any case — several wallets bypass it trivially.</li>
-  </ul>
-
-  <div class="address-block">
-    <h3 data-i18n="buy.addr.h">Curve contract address</h3>
-    <p class="address-hint" data-i18n="buy.addr.hint">Check it against the address shown in your wallet before you confirm the transaction. No other address is the sale contract.</p>
-    <div class="address-row">
-      <code id="curve-address" class="address">0x0000000000000000000000000000000000000000</code>
-      <button id="copy-curve" type="button" class="btn btn-ghost" data-copy-target="curve-address" data-i18n="buy.addr.copy">Copy</button>
-    </div>
-    <p class="links-inline" id="curve-links"></p>
-  </div>
-
   <div class="buy-panel">
     <div class="buy-wallet">
       <div class="wallet-id">
@@ -659,18 +640,24 @@
           <label for="in-amount" data-i18n-html="buy.field.amount">Amount in <span data-field="currency">ETH</span></label>
           <input id="in-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.01" spellcheck="false">
         </div>
-        <div class="buy-actions-main">
-          <button id="do-buy" type="button" class="btn btn-primary btn-lg btn-block" data-i18n="buy.action.buy" disabled>Buy</button>
-          <button id="buy-settings-toggle" type="button" class="btn btn-ghost" aria-label="Settings" style="flex: 0 0 auto; padding: .62rem;">⚙</button>
+
+        <button id="do-buy" type="button" class="btn btn-primary btn-lg btn-block" data-i18n="buy.action.buy" disabled>Buy</button>
+
+        <div class="slippage-row">
+          <span class="slippage-label">Slippage <strong id="slippage-display">1%</strong></span>
+          <button id="buy-settings-toggle" type="button" class="btn-settings" aria-label="Adjust settings" aria-expanded="false">⚙ Adjust</button>
         </div>
+
         <div class="buy-settings" id="buy-settings" hidden>
-          <div class="field">
-            <label for="in-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
-            <input id="in-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
-          </div>
-          <div class="field">
-            <label for="in-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
-            <input id="in-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
+          <div class="settings-grid">
+            <div class="field">
+              <label for="in-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
+              <input id="in-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
+            </div>
+            <div class="field">
+              <label for="in-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
+              <input id="in-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
+            </div>
           </div>
           <button id="quote" type="button" class="btn btn-block" data-i18n="buy.action.quote">Get quote</button>
         </div>
@@ -695,18 +682,24 @@
           <label for="sell-amount" data-i18n-html="sell.field.amount">Amount in <span data-field="token">MACLRN</span></label>
           <input id="sell-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0" spellcheck="false">
         </div>
-        <div class="buy-actions-main">
-          <button id="do-sell" type="button" class="btn btn-primary btn-lg btn-block" data-i18n="trade.sell" disabled>Sell</button>
-          <button id="sell-settings-toggle" type="button" class="btn btn-ghost" aria-label="Settings" style="flex: 0 0 auto; padding: .62rem;">⚙</button>
+
+        <button id="do-sell" type="button" class="btn btn-primary btn-lg btn-block" data-i18n="trade.sell" disabled>Sell</button>
+
+        <div class="slippage-row">
+          <span class="slippage-label">Slippage <strong id="sell-slippage-display">1%</strong></span>
+          <button id="sell-settings-toggle" type="button" class="btn-settings" aria-label="Adjust settings" aria-expanded="false">⚙ Adjust</button>
         </div>
+
         <div class="buy-settings" id="sell-settings" hidden>
-          <div class="field">
-            <label for="sell-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
-            <input id="sell-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
-          </div>
-          <div class="field">
-            <label for="sell-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
-            <input id="sell-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
+          <div class="settings-grid">
+            <div class="field">
+              <label for="sell-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
+              <input id="sell-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
+            </div>
+            <div class="field">
+              <label for="sell-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
+              <input id="sell-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
+            </div>
           </div>
           <button id="sell-quote" type="button" class="btn btn-block" data-i18n="buy.action.quote">Get quote</button>
         </div>
@@ -717,6 +710,25 @@
     </div>
 
     <p id="buy-message" class="buy-message" role="status" aria-live="polite"></p>
+  </div>
+
+  <ul class="rules">
+    <li data-i18n-html="buy.rule.trapezoid"><strong>The price rises linearly, so the cost of a purchase is the area of a trapezoid.</strong> Integer multiplication and division only, no exponential approximations. The formula can be recomputed on paper.</li>
+    <li data-i18n-html="buy.rule.ratio"><strong>From the first token to the last, the price rises by exactly a factor of <span class="mono">e</span>:</strong> from 2 gwei to 5.436563656918090470 gwei per whole token. The ratio can be verified on-chain with a single division, because the arithmetic is integer.</li>
+    <li data-i18n-html="buy.rule.fee"><strong>A flat 1% fee in ETH</strong> — a constant, not a variable. It is taken before the reserve is credited on a buy, and out of the already-reduced amount on a sell, so the reserve never funds the fee.</li>
+    <li data-i18n-html="buy.rule.buyback"><strong>The curve is not an exchange: you can only sell back to it what you bought from it.</strong> The purchase right is tied to the address (<code>boughtOf(address)</code>) and does not travel with an ordinary transfer. Otherwise a holder of free genesis tokens or staking rewards would walk off with the buyers' ETH. Tokens acquired anywhere other than the curve are sold on a secondary market, not here.</li>
+    <li data-i18n-html="buy.rule.nodiscretion"><strong>Nothing in the sell path depends on anyone's decision:</strong> only your balance, your own slippage protection and a deadline that has not expired. No pauses, no lists, no cooldown.</li>
+    <li data-i18n-html="buy.rule.antisnipe"><strong>The anti-snipe window has already expired.</strong> It capped purchases at 10 000 000 tokens per address for the first hour after the curve was deployed (<code>antiSnipeEnd()</code> — check it on-chain). That hour is over and no purchase was made during it, so the cap applies to nothing: right now a single transaction can buy the entire remaining inventory. The cap was a mitigation rather than a defence in any case — several wallets bypass it trivially.</li>
+  </ul>
+
+  <div class="address-block">
+    <h3 data-i18n="buy.addr.h">Curve contract address</h3>
+    <p class="address-hint" data-i18n="buy.addr.hint">Check it against the address shown in your wallet before you confirm the transaction. No other address is the sale contract.</p>
+    <div class="address-row">
+      <code id="curve-address" class="address">0x0000000000000000000000000000000000000000</code>
+      <button id="copy-curve" type="button" class="btn btn-ghost" data-copy-target="curve-address" data-i18n="buy.addr.copy">Copy</button>
+    </div>
+    <p class="links-inline" id="curve-links"></p>
   </div>
 
   <details class="table-details">

@@ -4615,17 +4615,24 @@ window.addEventListener('scroll', () => {
   });
 })();
 ;(function() {
-  function setupSettingsToggle(toggleId, panelId) {
+  function setupSettingsToggle(toggleId, panelId, slippageInputId, displayId) {
     const toggle = document.getElementById(toggleId);
     const panel = document.getElementById(panelId);
+    const slipInput = document.getElementById(slippageInputId);
+    const display = document.getElementById(displayId);
     if (!toggle || !panel) return;
     toggle.addEventListener('click', () => {
       const isHidden = panel.hidden;
       panel.hidden = !isHidden;
       toggle.setAttribute('aria-expanded', String(isHidden));
     });
+    if (slipInput && display) {
+      slipInput.addEventListener('input', () => {
+        display.textContent = (slipInput.value || '1') + '%';
+      });
+    }
   }
-  setupSettingsToggle('buy-settings-toggle', 'buy-settings');
-  setupSettingsToggle('sell-settings-toggle', 'sell-settings');
+  setupSettingsToggle('buy-settings-toggle', 'buy-settings', 'in-slippage', 'slippage-display');
+  setupSettingsToggle('sell-settings-toggle', 'sell-settings', 'sell-slippage', 'sell-slippage-display');
 })();
 
