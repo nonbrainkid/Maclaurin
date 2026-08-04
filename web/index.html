@@ -10,6 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="favicon.png">
+<meta property="og:image" content="favicon.png">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -588,7 +590,14 @@
     </div>
 
     <div class="chart-body">
-      <svg id="chart-svg" role="img" data-i18n-aria="chart.aria" aria-label="Price chart"></svg>
+      <svg id="chart-svg" role="img" data-i18n-aria="chart.aria" aria-label="Price chart">
+  <defs>
+    <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--accent)" stop-opacity="1" />
+      <stop offset="100%" stop-color="var(--accent)" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+</svg>
       <div class="chart-legend" id="chart-legend" hidden></div>
       <p class="chart-hint" id="chart-hint" data-i18n="chart.hint">Scroll to zoom · drag to pan · drag an axis to scale it · double-click to reset</p>
       <p class="chart-empty" id="chart-empty" hidden></p>

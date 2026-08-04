@@ -4582,3 +4582,15 @@ renderChart = function() {
     resetBtn.style.display = chart.mode === 'candles' ? '' : 'none';
   }
 };
+
+// Header scroll state
+window.addEventListener('scroll', () => {
+  const header = document.querySelector('.site-header');
+  if (header) {
+    if (window.scrollY > 20) {
+      header.classList.add('is-scrolled');
+    } else {
+      header.classList.remove('is-scrolled');
+    }
+  }
+}, { passive: true });
