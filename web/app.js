@@ -4709,7 +4709,7 @@ window.addEventListener('scroll', () => {
     // Check if we already know who the admin is
     if (!adminAddr) {
       try {
-        const res = await ethCall(curve, ABI.feeRecipient);
+        const res = await ethCall(curve, SEL.feeRecipient);
         if (res && res !== '0x') {
           adminAddr = '0x' + res.slice(-40);
         }
@@ -4761,7 +4761,7 @@ window.addEventListener('scroll', () => {
           try {
             await p.request({
               method: 'eth_estimateGas',
-              params: [{ from: state.account, to: curve, data: ABI.withdrawFees }]
+              params: [{ from: state.account, to: curve, data: SEL.withdrawFees }]
             });
           } catch(err) {
             throw new Error('Transaction will fail (no fees or not admin).');
@@ -4769,7 +4769,7 @@ window.addEventListener('scroll', () => {
 
           const txHash = await p.request({
             method: 'eth_sendTransaction',
-            params: [{ from: state.account, to: curve, data: ABI.withdrawFees }]
+            params: [{ from: state.account, to: curve, data: SEL.withdrawFees }]
           });
           showToast('Fees claimed successfully: ' + shortAddr(txHash), 'success');
           setTimeout(updateAdminStats, 2000);
@@ -4787,9 +4787,9 @@ window.addEventListener('scroll', () => {
   async function updateAdminStats() {
     if (!adminPanel || !state.account) return;
     try {
-      const res = await ethCall(curve, ABI.feesAccrued);
+      const res = await ethCall(curve, SEL.feesAccrued);
       const ethWei = BigInt(res === '0x' ? '0' : res);
-      const ethVal = formatAmount(ethWei, 18, 6);
+      const ethVal = formatUnits(ethWei, 18, 6);
       
       const ethEl = document.getElementById('admin-accrued-eth');
       const usdEl = document.getElementById('admin-accrued-usd');
@@ -4799,7 +4799,7 @@ window.addEventListener('scroll', () => {
       
       if (usdEl) {
         if (state.usdRate > 0) {
-          const usdVal = (Number(formatAmount(ethWei, 18, 18)) * state.usdRate).toFixed(2);
+          const usdVal = (Number(formatUnits(ethWei, 18, 18)) * state.usdRate).toFixed(2);
           usdEl.textContent = '$' + usdVal;
         } else {
           usdEl.textContent = '';
