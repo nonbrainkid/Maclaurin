@@ -4740,7 +4740,7 @@ window.addEventListener('scroll', () => {
         </div>
         <div class="admin-foot">
           <div class="admin-address">Payout wallet<br><span class="admin-address-val">${shortAddr(adminAddr)}</span></div>
-          <button id="admin-claim-btn" class="btn btn-primary btn-block admin-claim-btn" disabled>No fees to claim</button>
+          <button id="admin-claim-btn" class="btn btn-primary admin-claim-btn" disabled>No fees to claim</button>
         </div>
       `;
       adminPanel.innerHTML = html;
