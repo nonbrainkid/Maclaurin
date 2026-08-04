@@ -73,7 +73,7 @@ const CONFIG = {
   /* ЗАПОЛНИТЬ ПОСЛЕ ДЕПЛОЯ. Пока адрес нулевой, страница не делает по нему
      ни одного запроса и честно пишет «не задан» вместо числа. */
   contracts: {
-    token:    '0x158E4D1B8117B6bF2e269D6C19Fd62c29b10600D' // ERC-20 MACLRN on hood.fun
+    token:    '' // ERC-20 MACLRN on Pons (will be set after launch)
   },
 
   /* ЗАПОЛНИТЬ. Пустая строка => карточка ссылки показывается неактивной
@@ -83,8 +83,8 @@ const CONFIG = {
     audit:     'https://github.com/nonbrainkid/Maclaurin/blob/master/README.md#свойства-безопасности',
     specToken: 'https://github.com/nonbrainkid/Maclaurin/blob/master/MACLAURIN-TOKEN-SPEC.md',
 
-    /* hood.fun page */
-    hoodFun:   'https://hood.fun/coin/0x158E4D1B8117B6bF2e269D6C19Fd62c29b10600D',
+    /* Pons page */
+    pons:   '',
 
     telegram:  'https://t.me/MaclaurinRHC',
     x:         'https://x.com/MaclaurinRHC'

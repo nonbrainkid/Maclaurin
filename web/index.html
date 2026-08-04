@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Maclaurin (MACLRN) — supply is e, launched on hood.fun</title>
-<meta name="description" content="An ERC-20 whose total supply is the number e × 10⁹: exactly 2 718 281 828 tokens. Launched on hood.fun on Robinhood Chain.">
+<title>Maclaurin (MACLRN) — precision of e, launched on Pons</title>
+<meta name="description" content="An ERC-20 token exploring the Maclaurin series for e. Total supply is exactly 1 000 000 000, representing the precision of 10^9. Launched on Pons on Robinhood Chain.">
 <meta name="color-scheme" content="dark light">
 <meta name="referrer" content="no-referrer">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -106,15 +106,15 @@
       <h1 data-i18n-html="hero.title">Supply is <span class="mono">e</span>. Emission is <span class="mono">1/n!</span>.</h1>
 
       <p class="lede" data-i18n-html="hero.lede">
-        An ERC-20 whose issuance schedule is not a team decision but the partial sums
-        of a series. Total supply equals the number <span class="mono">e</span> to 18
-        decimal places. Emission decays factorially and terminates on its own: not on
-        a roadmap date, but at the epoch where the next term of the series first falls
-        below one base unit of the token.
+        An ERC-20 dedicated to the mathematical beauty of Euler's number.
+        The total supply is strictly 1 000 000 000 tokens — representing a precision
+        of <span class="mono">10<sup>9</sup></span>. In mathematics, calculating <span class="mono">e</span>
+        to 9 decimal places requires summing exactly 13 terms of the Maclaurin series.
+        Our supply honors this exact precision limit.
       </p>
 
       <div class="hero-actions">
-        <a class="btn btn-primary btn-lg" href="#buy" data-i18n="hero.cta.buy">Buy on hood.fun</a>
+        <a class="btn btn-primary btn-lg" href="#buy" data-i18n="hero.cta.buy">Buy on Pons</a>
         <a class="btn btn-lg" href="#live" data-i18n="hero.cta.verify">Verify on-chain</a>
       </div>
 
@@ -153,8 +153,8 @@
   <dl class="facts">
     <div>
       <dt data-i18n="hero.fact.supply.dt">Total supply</dt>
-      <dd class="mono">2 718 281 828</dd>
-      <dd class="sub" data-i18n-html="hero.fact.supply.sub">= floor(e × 10<sup>9</sup>)</dd>
+      <dd class="mono">1 000 000 000</dd>
+      <dd class="sub" data-i18n-html="hero.fact.supply.sub">precision of 10<sup>9</sup> for calculating e</dd>
     </div>
   </dl>
 </section>
@@ -214,97 +214,12 @@
   <p class="eyebrow"><span data-i18n="eyebrow.mech">02 — Mechanics</span></p>
   <h2 data-i18n="mech.h2">The mechanics, no maths background required</h2>
 
-  <h3 data-i18n="mech.supply.h">1. The supply is a number, not a round figure</h3>
+  <h3 data-i18n="mech.supply.h">1. The significance of 1 Billion</h3>
   <p data-i18n-html="mech.supply.p1">
-    Supply is normally chosen: a billion, because a billion looks good. Here it is
-    the base of the natural logarithm scaled by 10<sup>27</sup>:
+    Supply is strictly 1 000 000 000 tokens. This is not just a standard launchpad default, it is our mathematical boundary. It represents a precision of 10<sup>9</sup> (9 decimal places).
   </p>
-  <p class="callout mono">2 718 281 828.459045235360287471 MACLRN</p>
   <p data-i18n-html="mech.supply.p2">
-    The series <span class="mono">e = 1/0! + 1/1! + 1/2! + 1/3! + …</span>
-    converges. Converging means that no matter how many terms you add, the sum
-    never exceeds <span class="mono">e</span>. The supply is bounded by a property
-    of the series, not by a promise to issue no more than some amount.
-  </p>
-  <p data-i18n-html="mech.supply.p3">
-    The first two terms (<span class="mono">1/0! + 1/1! = 2</span>) are
-    2 000 000 000 tokens, 73.576% of supply. They exist from block zero and cannot
-    be farmed. The remaining 26.424% (718 281 828.459045235360287471 tokens) sit in
-    the emission contract and are handed out epoch by epoch.
-  </p>
-
-  <h3 data-i18n="mech.decay.h">2. Emission decays factorially</h3>
-  <p data-i18n-html="mech.decay.p1">
-    An epoch lasts 7 days. Epoch <span class="mono">n</span> issues exactly
-    <span class="mono">10<sup>27</sup>/n!</span> base units: epoch 2 issues one
-    half, epoch 3 one sixth, epoch 4 one twenty-fourth. Each portion is smaller
-    than the previous one not by percentage points but by whole factors, and the
-    gap keeps widening.
-  </p>
-  <p data-i18n="mech.decay.p2">
-    The practical consequence: the first five epochs release 99.97% of the emission
-    pool. The tail is not cut off — it continues, it simply becomes negligible very
-    quickly. This is the opposite of halving, where every step divides the reward
-    exactly in two, forever.
-  </p>
-
-  <details class="table-details">
-    <summary data-i18n="mech.table.summary">Full epoch table (constants hardcoded in the contract)</summary>
-    <div class="table-scroll">
-      <table>
-        <thead>
-          <tr><th>n</th><th>n!</th><th data-i18n="mech.table.th.units">base units</th><th data-i18n="mech.table.th.tokens">tokens</th><th data-i18n="mech.table.th.pct">% of supply</th></tr>
-        </thead>
-        <tbody class="mono">
-          <tr><td>2</td><td>2</td><td>500000000000000000000000000</td><td>500 000 000</td><td>18.394%</td></tr>
-          <tr><td>3</td><td>6</td><td>166666666666666666666666666</td><td>166 666 666.67</td><td>6.131%</td></tr>
-          <tr><td>4</td><td>24</td><td>41666666666666666666666666</td><td>41 666 666.67</td><td>1.533%</td></tr>
-          <tr><td>5</td><td>120</td><td>8333333333333333333333333</td><td>8 333 333.33</td><td>0.3066%</td></tr>
-          <tr><td>6</td><td>720</td><td>1388888888888888888888888</td><td>1 388 888.89</td><td>0.0511%</td></tr>
-          <tr><td>7</td><td>5040</td><td>198412698412698412698412</td><td>198 412.70</td><td>0.0073%</td></tr>
-          <tr><td>8</td><td>40320</td><td>24801587301587301587301</td><td>24 801.59</td><td>0.0009%</td></tr>
-          <tr><td>9</td><td>362880</td><td>2755731922398589065255</td><td>2 755.73</td><td>—</td></tr>
-          <tr><td>10</td><td>3628800</td><td>275573192239858906525</td><td>275.57</td><td>—</td></tr>
-          <tr><td>11</td><td>39916800</td><td>25052108385441718775</td><td>25.05</td><td>—</td></tr>
-          <tr><td>12</td><td>479001600</td><td>2087675698786809897</td><td>2.088</td><td>—</td></tr>
-          <tr><td>13</td><td>6227020800</td><td>160590438368216145</td><td>0.1606</td><td>—</td></tr>
-          <tr><td>14</td><td>87178291200</td><td>11470745597729724</td><td>0.01147</td><td>—</td></tr>
-          <tr><td>15</td><td>1307674368000</td><td>764716373181981</td><td>0.000765</td><td>—</td></tr>
-          <tr><td>16</td><td>20922789888000</td><td>47794773323873</td><td>0.0000478</td><td>—</td></tr>
-          <tr><td>17</td><td>355687428096000</td><td>2811457254345</td><td>0.00000281</td><td>—</td></tr>
-          <tr><td>18</td><td>6402373705728000</td><td>156192069685</td><td>0.000000156</td><td>—</td></tr>
-          <tr><td>19</td><td>121645100408832000</td><td>8220635246</td><td>0.00000000822</td><td>—</td></tr>
-          <tr><td>20</td><td>2432902008176640000</td><td>411031762</td><td>—</td><td>—</td></tr>
-          <tr><td>21</td><td>51090942171709440000</td><td>19572941</td><td>—</td><td>—</td></tr>
-          <tr><td>22</td><td>1124000727777607680000</td><td>889679</td><td>—</td><td>—</td></tr>
-          <tr><td>23</td><td>25852016738884976640000</td><td>38681</td><td>—</td><td>—</td></tr>
-          <tr><td>24</td><td>620448401733239439360000</td><td>1611</td><td>—</td><td>—</td></tr>
-          <tr><td>25</td><td>15511210043330985984000000</td><td>64</td><td>—</td><td>—</td></tr>
-          <tr><td>26</td><td>403291461126605635584000000</td><td>2</td><td>—</td><td>—</td></tr>
-          <tr class="row-final"><td>27</td><td>10888869450418352160768000000</td><td data-i18n="mech.table.final">0 — emission complete</td><td>—</td><td>—</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="footnote" data-i18n="mech.table.footnote">
-      Epochs 2…26 sum to 718 281 828 459 045 235 360 287 457 base units. The
-      floor-rounding remainder — 14 units — stays in the emission contract forever.
-      That is not a loss but a buffer: paying out more than exists is
-      arithmetically impossible, without a single check in the code.
-    </p>
-  </details>
-
-  <h3 data-i18n="mech.end.h">3. Emission terminates on its own</h3>
-  <p data-i18n-html="mech.end.p1">
-    At epoch 27 the term of the series is
-    <span class="mono">10<sup>27</sup>/27!</span>. 27! is roughly
-    <span class="mono">1.089 × 10<sup>28</sup></span>, which is larger than the
-    numerator. EVM arithmetic is integer-only, with no fractions: the division
-    yields zero. Not “rounded to zero for display” — it is zero.
-  </p>
-  <p class="callout" data-i18n="mech.end.callout">
-    The end of emission is a property of uint256 arithmetic, not a multisig
-    decision. Nobody votes to stop issuance and nobody can extend it: no function
-    capable of doing so exists in the contract.
+    The series <span class="mono">e = 1/0! + 1/1! + 1/2! + 1/3! + …</span> converges. To calculate the value of <span class="mono">e</span> to a precision of exactly 10<sup>9</sup> (2.718281828), you need to sum the first 13 terms of the Maclaurin series. The supply embodies this exact computational limit.
   </p>
 
   </section>
@@ -312,18 +227,18 @@
 <!-- ───────────────────────────  IMMUTABILITY  ─────────────────────── -->
 <section id="immutable" class="wrap">
   <p class="eyebrow"><span data-i18n="eyebrow.imm">03 — Platform</span></p>
-  <h2 data-i18n="imm.h2">Launched on hood.fun</h2>
+  <h2 data-i18n="imm.h2">Launched on Pons</h2>
 
   <p data-i18n-html="imm.p1">
-    The token is launched through <a href="https://hood.fun" target="_blank" rel="noopener noreferrer">hood.fun</a> —
+    The token is launched through <a href="#" target="_blank" rel="noopener noreferrer">Pons</a> —
     the native launchpad on Robinhood Chain. The bonding curve, liquidity graduation, and
     fee distribution are handled entirely by the platform's audited contracts.
   </p>
 
   <ul class="rules">
-    <li data-i18n-html="imm.platform"><strong>Platform-managed liquidity.</strong> hood.fun handles the bonding curve and automatically graduates the token to a DEX once it reaches the market cap threshold ($50.7K). No manual liquidity provisioning is needed.</li>
+    <li data-i18n-html="imm.platform"><strong>Platform-managed liquidity.</strong> Pons handles the bonding curve and automatically graduates the token to a DEX once it reaches the market cap threshold ($50.7K). No manual liquidity provisioning is needed.</li>
     <li data-i18n-html="imm.community"><strong>Community-first.</strong> The community board is enabled, allowing holders to participate in discussions directly on the token's page.</li>
-    <li data-i18n-html="imm.supply"><strong>Custom supply preserved.</strong> The total supply is set to exactly 2 718 281 828 — the integer part of e × 10<sup>9</sup>. The mathematical identity of the token is baked into its genesis parameters, not into a separate emission contract.</li>
+    <li data-i18n-html="imm.supply"><strong>Custom supply preserved.</strong> The total supply is set to exactly 1 000 000 000 to represent a precision of 10^9 for calculating e. The mathematical identity of the token is baked into its genesis parameters, not into a separate emission contract.</li>
     <li data-i18n-html="imm.transparent"><strong>Fully transparent.</strong> Every transaction, every holder, and the full contract source are visible on the Robinhood Chain explorer. The token contract address is shown on this page and can be independently verified.</li>
   </ul>
 </section>
@@ -334,12 +249,12 @@
   <h2 data-i18n="buy.h2">Buy MACLRN</h2>
 
   <p data-i18n="buy.p1">
-    MACLRN is available on hood.fun, the native launchpad on Robinhood Chain.
+    MACLRN is available on Pons, the native launchpad on Robinhood Chain.
     Connect your wallet, swap ETH for MACLRN, and you're in.
   </p>
 
   <div class="buy-panel" style="text-align:center; padding: 2rem 0;">
-    <a id="hoodfun-link" class="btn btn-primary btn-lg" href="https://hood.fun/coin/0x158E4D1B8117B6bF2e269D6C19Fd62c29b10600D" target="_blank" rel="noopener noreferrer" data-i18n="buy.action.buy">Buy on hood.fun</a>
+    <a id="pons-link" class="btn btn-primary btn-lg" href="#" target="_blank" rel="noopener noreferrer" data-i18n="buy.action.buy">Buy on Pons</a>
   </div>
 
   <div class="address-block">
@@ -362,7 +277,7 @@
     <ul class="rules">
       <li data-i18n-html="risks.experimental">
         <strong>The project is experimental.</strong> The token is launched on a platform
-        whose contracts are managed by hood.fun. While the platform is audited, no
+        whose contracts are managed by Pons. While the platform is audited, no
         audit eliminates all risk.
       </li>
       <li data-i18n-html="risks.network">
@@ -395,7 +310,7 @@
           <span class="brand-name">Maclaurin</span>
           <span class="brand-ticker">MACLRN</span>
         </p>
-        <p class="footnote" data-i18n="footer.tagline" style="margin:0">Supply is e. Launched on hood.fun.</p>
+        <p class="footnote" data-i18n="footer.tagline" style="margin:0">Supply is e. Launched on Pons.</p>
       </div>
       <div class="social-row">
         <a class="social-pill" href="https://t.me/MaclaurinRHC" target="_blank" rel="noopener noreferrer">
