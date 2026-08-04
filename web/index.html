@@ -586,6 +586,7 @@
           <button type="button" class="seg-btn" data-mode="curve" data-i18n="chart.mode.curve">Curve</button>
         </div>
         <button id="chart-reset-zoom" type="button" class="btn btn-ghost" aria-label="Reset zoom" hidden style="padding: 4px 8px;">Reset Zoom</button>
+        <button id="chart-resize" type="button" class="btn btn-ghost" aria-label="Resize chart" style="padding: 4px 8px; font-size: .75rem;">Expand</button>
       </div>
     </div>
 
@@ -654,23 +655,25 @@
       </div>
 
       <div class="buy-form">
-        <div class="field">
+        <div class="field field-main">
           <label for="in-amount" data-i18n-html="buy.field.amount">Amount in <span data-field="currency">ETH</span></label>
           <input id="in-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.01" spellcheck="false">
         </div>
-        <div class="field">
-          <label for="in-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
-          <input id="in-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
+        <div class="buy-actions-main">
+          <button id="do-buy" type="button" class="btn btn-primary btn-lg btn-block" data-i18n="buy.action.buy" disabled>Buy</button>
+          <button id="buy-settings-toggle" type="button" class="btn btn-ghost" aria-label="Settings" style="flex: 0 0 auto; padding: .62rem;">⚙</button>
         </div>
-        <div class="field">
-          <label for="in-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
-          <input id="in-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
+        <div class="buy-settings" id="buy-settings" hidden>
+          <div class="field">
+            <label for="in-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
+            <input id="in-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="in-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
+            <input id="in-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
+          </div>
+          <button id="quote" type="button" class="btn btn-block" data-i18n="buy.action.quote">Get quote</button>
         </div>
-      </div>
-
-      <div class="buy-actions">
-        <button id="quote" type="button" class="btn" data-i18n="buy.action.quote">Get quote</button>
-        <button id="do-buy" type="button" class="btn btn-primary" data-i18n="buy.action.buy" disabled>Buy</button>
       </div>
 
       <div id="quote-out" class="quote-out" hidden></div>
@@ -688,23 +691,25 @@
       </div>
 
       <div class="buy-form">
-        <div class="field">
+        <div class="field field-main">
           <label for="sell-amount" data-i18n-html="sell.field.amount">Amount in <span data-field="token">MACLRN</span></label>
           <input id="sell-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0" spellcheck="false">
         </div>
-        <div class="field">
-          <label for="sell-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
-          <input id="sell-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
+        <div class="buy-actions-main">
+          <button id="do-sell" type="button" class="btn btn-primary btn-lg btn-block" data-i18n="trade.sell" disabled>Sell</button>
+          <button id="sell-settings-toggle" type="button" class="btn btn-ghost" aria-label="Settings" style="flex: 0 0 auto; padding: .62rem;">⚙</button>
         </div>
-        <div class="field">
-          <label for="sell-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
-          <input id="sell-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
+        <div class="buy-settings" id="sell-settings" hidden>
+          <div class="field">
+            <label for="sell-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
+            <input id="sell-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
+          </div>
+          <div class="field">
+            <label for="sell-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
+            <input id="sell-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
+          </div>
+          <button id="sell-quote" type="button" class="btn btn-block" data-i18n="buy.action.quote">Get quote</button>
         </div>
-      </div>
-
-      <div class="buy-actions">
-        <button id="sell-quote" type="button" class="btn" data-i18n="buy.action.quote">Get quote</button>
-        <button id="do-sell" type="button" class="btn btn-primary" data-i18n="trade.sell" disabled>Sell</button>
       </div>
 
       <div id="sell-quote-out" class="quote-out" hidden></div>

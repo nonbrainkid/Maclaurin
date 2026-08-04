@@ -4594,3 +4594,38 @@ window.addEventListener('scroll', () => {
     }
   }
 }, { passive: true });
+
+
+;(function() {
+  const btn = document.getElementById('chart-resize');
+  const card = document.querySelector('.chart-card');
+  if (!btn || !card) return;
+  const modes = ['', 'chart-compact', 'chart-expanded'];
+  const labels = ['Expand', 'Compact', 'Normal'];
+  let idx = 0;
+  btn.addEventListener('click', () => {
+    card.classList.remove(...modes.filter(Boolean));
+    idx = (idx + 1) % modes.length;
+    if (modes[idx]) card.classList.add(modes[idx]);
+    btn.textContent = labels[idx];
+    // trigger chart re-render if available
+    const svg = document.getElementById('chart-svg');
+    if (svg) svg.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event('resize'));
+  });
+})();
+;(function() {
+  function setupSettingsToggle(toggleId, panelId) {
+    const toggle = document.getElementById(toggleId);
+    const panel = document.getElementById(panelId);
+    if (!toggle || !panel) return;
+    toggle.addEventListener('click', () => {
+      const isHidden = panel.hidden;
+      panel.hidden = !isHidden;
+      toggle.setAttribute('aria-expanded', String(isHidden));
+    });
+  }
+  setupSettingsToggle('buy-settings-toggle', 'buy-settings');
+  setupSettingsToggle('sell-settings-toggle', 'sell-settings');
+})();
+

@@ -39,7 +39,7 @@
   --sans: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
   --wrap: 72rem;      /* сетка карточек и таблиц */
-  --measure: 40rem;   /* строка прозы: ~70 знаков, дальше читать тяжело */
+  --measure: 56rem;   /* строка прозы: ~70 знаков, дальше читать тяжело */
   --r: 16px;
   --r-sm: 8px;
   --header-h: 3.75rem;
@@ -580,8 +580,17 @@ h1 .mono { font-weight: 500; letter-spacing: -0.01em; }
 
 .metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+@media (max-width: 80rem) {
+  .metrics { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 56rem) {
+  .metrics { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 36rem) {
+  .metrics { grid-template-columns: 1fr; }
 }
 
 /* Карточки склеены волосяной сеткой вместо восьми отдельных прямоугольников:
@@ -590,7 +599,7 @@ h1 .mono { font-weight: 500; letter-spacing: -0.01em; }
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r);
-  padding: 1.5rem 1.35rem;
+  padding: 1.15rem 1rem;
   display: flex;
   flex-direction: column;
   gap: .5rem;
@@ -1489,3 +1498,12 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
 .sale-card, .metric, .address-block, .market-stats, .chart-card, .table-details {
   box-shadow: var(--shadow);
 }
+
+/* Task 3 & 4 additions */
+.chart-body { height: 420px; transition: height 0.3s ease; }
+.chart-card.chart-compact .chart-body { height: 280px; }
+.chart-card.chart-expanded .chart-body { height: 80vh; }
+.buy-actions-main { display: flex; gap: .5rem; margin-top: .75rem; }
+.buy-settings { margin-top: .75rem; padding-top: .75rem; border-top: 1px solid var(--line); display: grid; gap: .75rem; }
+.field-main input { font-size: 1.25rem; padding: .85rem 1rem; }
+
