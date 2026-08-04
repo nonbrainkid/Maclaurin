@@ -73,7 +73,7 @@ const CONFIG = {
   /* ЗАПОЛНИТЬ ПОСЛЕ ДЕПЛОЯ. Пока адрес нулевой, страница не делает по нему
      ни одного запроса и честно пишет «не задан» вместо числа. */
   contracts: {
-    token:    '' // ERC-20 MACLRN on Pons (will be set after launch)
+    token:    '0x31e02b0aaaFcb15B3ABd1F6Bc65aa3E09d5d018b' // ERC-20 MACLRN on Pons
   },
 
   /* ЗАПОЛНИТЬ. Пустая строка => карточка ссылки показывается неактивной
@@ -84,7 +84,7 @@ const CONFIG = {
     specToken: 'https://github.com/nonbrainkid/Maclaurin/blob/master/MACLAURIN-TOKEN-SPEC.md',
 
     /* Pons page */
-    pons:   '',
+    pons:   'https://www.ponsfamily.com/launchpad/0x31e02b0aaaFcb15B3ABd1F6Bc65aa3E09d5d018b',
 
     telegram:  'https://t.me/MaclaurinRHC',
     x:         'https://x.com/MaclaurinRHC'
