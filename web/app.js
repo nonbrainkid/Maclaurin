@@ -4612,10 +4612,13 @@ window.addEventListener('scroll', () => {
     idx = (idx + 1) % modes.length;
     if (modes[idx]) card.classList.add(modes[idx]);
     btn.textContent = labels[idx];
-    // trigger chart re-render if available
-    const svg = document.getElementById('chart-svg');
-    if (svg) svg.dispatchEvent(new Event('resize'));
-    window.dispatchEvent(new Event('resize'));
+    // trigger chart re-render after CSS transition completes
+    setTimeout(() => {
+      const svg = document.getElementById('chart-svg');
+      if (svg) svg.dispatchEvent(new Event('resize'));
+      window.dispatchEvent(new Event('resize'));
+      if (typeof renderChart === 'function') renderChart();
+    }, 320);
   });
 })();
 ;(function() {
@@ -4672,6 +4675,7 @@ window.addEventListener('scroll', () => {
 
 ;(function() {
   const container = document.getElementById('admin-container');
+  const curve = CONFIG.contracts.curve;
   if (!container) return;
 
   let adminPanel = null;
