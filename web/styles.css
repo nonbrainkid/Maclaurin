@@ -711,6 +711,7 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
 .rules { padding-left: 1.1rem; margin: 0 0 1rem; }
 .rules li { margin-bottom: .8rem; max-width: var(--measure); }
 .rules li::marker { color: var(--ink-3); }
+#buy .rules { margin-top: 2.5rem; }
 
 .footnote { font-size: .82rem; color: var(--ink-3); max-width: var(--measure); }
 .links-inline { font-size: .85rem; }
@@ -1099,6 +1100,7 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
   border-radius: var(--r);
   padding: 1.25rem;
   background: var(--surface);
+  margin-bottom: 3rem;
 }
 
 .buy-wallet {
@@ -1138,7 +1140,7 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
 }
 .chip:hover { color: var(--ink); border-color: var(--line-2); background: var(--surface-2); }
 
-.buy-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: .9rem; }
+.buy-form { display: flex; flex-direction: column; gap: .75rem; }
 .field { display: flex; flex-direction: column; gap: .3rem; }
 .field label { font-size: .8rem; color: var(--ink-2); }
 .field input {
@@ -1542,3 +1544,5 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
   font-family: var(--mono);
 }
 
+
+#quote, #sell-quote { display: none !important; }

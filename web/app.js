@@ -4378,9 +4378,9 @@ function init() {
   $('#connect-header').addEventListener('click', () => connect());
   $('#disconnect').addEventListener('click', () => disconnectWallet());
   $('#wm-close').addEventListener('click', () => closeWalletModal());
-  $('#amount-max').addEventListener('click', () => fillMaxAmount());
+  $('#amount-max').addEventListener('click', () => { fillMaxAmount(); $('#in-amount').dispatchEvent(new Event('input')); });
   $$('.chip[data-amount]').forEach((b) => {
-    b.addEventListener('click', () => { $('#in-amount').value = b.dataset.amount; });
+    b.addEventListener('click', () => { $('#in-amount').value = b.dataset.amount; $('#in-amount').dispatchEvent(new Event('input')); });
   });
 
   /* — вкладки, продажа, график — */
@@ -4388,7 +4388,7 @@ function init() {
   $('#sell-quote').addEventListener('click', () => sellQuote());
   $('#do-sell').addEventListener('click', () => doSell());
   $$('.chip[data-sell-pct]').forEach((b) => {
-    b.addEventListener('click', () => fillSellPct(Number(b.dataset.sellPct)));
+    b.addEventListener('click', () => { fillSellPct(Number(b.dataset.sellPct)); $('#sell-amount').dispatchEvent(new Event('input')); });
   });
 
   // Смена интервала меняет и длину серии, поэтому окно просмотра из старого
@@ -4636,3 +4636,32 @@ window.addEventListener('scroll', () => {
   setupSettingsToggle('sell-settings-toggle', 'sell-settings', 'sell-slippage', 'sell-slippage-display');
 })();
 
+
+;(function() {
+  // Auto-quote: когда пользователь вводит сумму, автоматически вызываем Get quote с debounce
+  let buyTimer = null;
+  let sellTimer = null;
+  
+  const buyInput = document.getElementById('in-amount');
+  const quoteBtn = document.getElementById('quote');
+  const sellInput = document.getElementById('sell-amount');
+  const sellQuoteBtn = document.getElementById('sell-quote');
+  
+  if (buyInput && quoteBtn) {
+    buyInput.addEventListener('input', () => {
+      clearTimeout(buyTimer);
+      const val = buyInput.value.trim();
+      if (!val || isNaN(parseFloat(val)) || parseFloat(val) <= 0) return;
+      buyTimer = setTimeout(() => { quoteBtn.click(); }, 600);
+    });
+  }
+  
+  if (sellInput && sellQuoteBtn) {
+    sellInput.addEventListener('input', () => {
+      clearTimeout(sellTimer);
+      const val = sellInput.value.trim();
+      if (!val || isNaN(parseFloat(val)) || parseFloat(val) <= 0) return;
+      sellTimer = setTimeout(() => { sellQuoteBtn.click(); }, 600);
+    });
+  }
+})();
