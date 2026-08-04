@@ -1447,6 +1447,13 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
   --line-2:      #d1d5db;
   --accent:      #9a4b14;
   --accent-soft: #f5ece3;
+  --ok:          #1c6b41;
+  --err:         #a32020;
+  --warn-bg:     #fdf6e7;
+  --warn-line:   #e2c68a;
+  --warn-fg:     #6b4a06;
+  --risk-bg:     #fdf6f4;
+  --risk-line:   #e5c3ba;
 }
 :root[data-theme="dark"] .sale-card {
   border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
