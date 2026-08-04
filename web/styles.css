@@ -759,6 +759,42 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
   flex: 1 1 22rem;
 }
 
+/* ── сводка рынка ───────────────────────────────────────────────────────── */
+
+.market-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+  margin: 2rem 0 .75rem;
+}
+.market-stats:empty { display: none; }
+
+.mstat { background: var(--surface); padding: .85rem 1rem; }
+.mstat .k {
+  display: block;
+  font-family: var(--mono);
+  font-size: .67rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--ink-3);
+  margin-bottom: .3rem;
+  white-space: nowrap;
+}
+.mstat .v {
+  display: block;
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  word-break: break-all;
+}
+.mstat .v.is-na { color: var(--ink-3); }
+.mstat .s { display: block; font-family: var(--mono); font-size: .71rem; color: var(--ink-3); margin-top: .2rem; word-break: break-all; }
+
 /* ── график ─────────────────────────────────────────────────────────────── */
 
 .chart-card {

@@ -110,6 +110,18 @@ const CONFIG = {
     // Пределы зума и длина серии живут в VIEW рядом с кодом графика.
   },
 
+  /* Курс газового токена к доллару.
+     ЕДИНСТВЕННЫЙ запрос страницы не к узлу сети — и единственное место, где
+     приходится доверять постороннему сервису. Он же видит IP каждого, кто
+     открыл страницу. Пустой url полностью выключает доллары: все величины
+     останутся в ETH, ничего больше не сломается. */
+  price: {
+    url: 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd',
+    path: ['ethereum', 'usd'],
+    ttlMs: 300000,
+    source: 'CoinGecko'
+  },
+
   ui: {
     autoRefreshMs: 60000,      // 0 — выключить автообновление
     defaultSlippagePct: '1',
@@ -270,6 +282,20 @@ const I18N = {
     'eyebrow.contracts': '06 — Contracts',
     'eyebrow.risks': '07 — Risks',
     'eyebrow.links': '08 — Verify',
+
+    /* — сводка рынка — */
+    'market.price': 'Price',
+    'market.mcap': 'Market cap',
+    'market.mcap.na': 'a balance did not read',
+    'market.fdv': 'FDV',
+    'market.liquidity': 'Liquidity',
+    'market.vol24': 'Volume 24h',
+    'market.volAll': 'Volume, all time',
+    'market.vol.na': 'trade log not read',
+    'market.note': 'Market cap counts circulating supply only: total supply less the burn, the undistributed emission, the locked treasury and the curve\'s unsold inventory. FDV counts the whole supply. Liquidity is the curve reserve — the ETH that backs buy-backs, not a pool: the curve repurchases only what it sold, and only from the address that bought it.',
+    'market.usd.src': 'Dollars are converted at {rate} per {gas}, quoted by {src} — the only request this page makes outside the network. Everything else is read from the chain.',
+    'market.usd.failed': 'The dollar rate did not load, so the figures are in {gas} only.',
+    'market.usd.off': 'Dollar conversion is switched off in the page configuration.',
 
     /* — журнал операций — */
     'nav.activity': 'Activity',
@@ -528,7 +554,7 @@ const I18N = {
     'links.h2': 'Verify',
     'links.footnote': 'Contract links point to verified sources in the explorer: that is where the bytecode is matched and where you read the same code that sits in the repository. Treat an unverified contract as unchecked, whatever a website says about it.',
     'footer.p1': 'Maclaurin Series (MACLRN). The narrative is built around 18th-century mathematics, not around a public figure: no real person\'s name or likeness and no company name is used, and no endorsement is implied.',
-    'footer.p2': 'The page is static: no backend, no analytics, no third-party scripts or fonts. The only network request is an <span class="mono">eth_call</span> to the network\'s public RPC endpoints, whose addresses are visible in the configuration in <span class="mono">web/app.js</span>. Transactions are signed by your wallet; the page never sees your keys and never asks for them.',
+    'footer.p2': 'The page is static: no backend, no analytics, no third-party scripts or fonts. Almost every request goes to the network\'s public RPC endpoints, whose addresses are visible in the configuration in <span class="mono">web/app.js</span>. There is exactly one exception: the ETH/USD rate behind the dollar figures is quoted by an outside service, which therefore sees the address you connect from. That service is named in the configuration and can be switched off there — with it off the page shows every figure in the network\'s own token and nothing else changes. Transactions are signed by your wallet; the page never sees your keys and never asks for them.',
 
     /* — динамика: статус чтения — */
     'status.loading': 'Loading…',
@@ -723,6 +749,20 @@ const I18N = {
     'eyebrow.contracts': '06 — Контракты',
     'eyebrow.risks': '07 — Риски',
     'eyebrow.links': '08 — Проверка',
+
+    /* — сводка рынка — */
+    'market.price': 'Цена',
+    'market.mcap': 'Капитализация',
+    'market.mcap.na': 'баланс не прочитан',
+    'market.fdv': 'FDV',
+    'market.liquidity': 'Ликвидность',
+    'market.vol24': 'Объём за 24 ч',
+    'market.volAll': 'Объём за всё время',
+    'market.vol.na': 'журнал сделок не прочитан',
+    'market.note': 'Капитализация считается только по обращению: сапплай минус сожжённое, минус нераспределённая эмиссия, минус казна под замком, минус нераспроданный инвентарь кривой. FDV — по всему сапплаю. Ликвидность здесь — резерв кривой, то есть ETH, которым обеспечен обратный выкуп, а не пул: кривая выкупает только то, что продала, и только у того адреса, который покупал.',
+    'market.usd.src': 'Доллары пересчитаны по курсу {rate} за {gas} от {src} — это единственный запрос страницы за пределы сети. Всё остальное читается с цепочки.',
+    'market.usd.failed': 'Курс доллара не загрузился, поэтому величины показаны только в {gas}.',
+    'market.usd.off': 'Пересчёт в доллары выключен в конфигурации страницы.',
 
     /* — журнал операций — */
     'nav.activity': 'Операции',
@@ -981,7 +1021,7 @@ const I18N = {
     'links.h2': 'Проверить',
     'links.footnote': 'Ссылки на контракты ведут на верифицированные исходники в эксплорере: там сверяется байткод и читается тот же код, что лежит в репозитории. Неверифицированный контракт стоит считать непроверенным независимо от того, что написано на сайте.',
     'footer.p1': 'Maclaurin Series (MACLRN). Нарратив построен вокруг математики XVIII века, а не вокруг публичного лица: имена, изображения и названия компаний реальных людей не используются и ничьё одобрение не подразумевается.',
-    'footer.p2': 'Страница статическая: без бэкенда, без аналитики, без сторонних скриптов и шрифтов. Единственный сетевой запрос — <span class="mono">eth_call</span> к публичным RPC сети, адреса которых видны в конфигурации <span class="mono">web/app.js</span>. Транзакции подписывает ваш кошелёк, ключи страница не видит и не запрашивает.',
+    'footer.p2': 'Страница статическая: без бэкенда, без аналитики, без сторонних скриптов и шрифтов. Почти все запросы идут к публичным RPC сети, адреса которых видны в конфигурации <span class="mono">web/app.js</span>. Исключение ровно одно: курс ETH/USD, по которому пересчитаны долларовые величины, берётся у стороннего сервиса — и он видит адрес, с которого вы зашли. Сервис назван в той же конфигурации и там же выключается: без него все величины показываются в токене сети, больше ничего не меняется. Транзакции подписывает ваш кошелёк, ключи страница не видит и не запрашивает.',
 
     /* — динамика: статус чтения — */
     'status.loading': 'Загрузка…',
@@ -1526,7 +1566,7 @@ function setStatus(key, params = null, kind = '') {
 /* ── чтение с цепочки ──────────────────────────────────────────────────── */
 
 async function refresh() {
-  const { token: T, emission: E, curve: C } = CONFIG.contracts;
+  const { token: T, emission: E, curve: C, vesting: V } = CONFIG.contracts;
   const anySet = isSet(T) || isSet(E) || isSet(C);
 
   if (!anySet) {
@@ -1546,6 +1586,15 @@ async function refresh() {
     tasks.decimals    = ethCall(T, SEL.decimals);
     tasks.implSlot    = rpc('eth_getStorageAt', [T, EIP1967.impl, 'latest']);
     tasks.adminSlot   = rpc('eth_getStorageAt', [T, EIP1967.admin, 'latest']);
+
+    /* Балансы, которые НЕ находятся в обращении: сожжённое, нераспределённая
+       эмиссия, казна под замком и остаток инвентаря кривой. Обращение — это
+       сапплай минус они, а не весь сапплай: иначе капитализация посчиталась
+       бы по монетам, которых ни у кого нет. */
+    tasks.balDead = ethCall(T, SEL.balanceOf + argAddr(DEAD_ADDR));
+    if (isSet(E)) tasks.balEmission = ethCall(T, SEL.balanceOf + argAddr(E));
+    if (isSet(C)) tasks.balCurve    = ethCall(T, SEL.balanceOf + argAddr(C));
+    if (isSet(V)) tasks.balVesting  = ethCall(T, SEL.balanceOf + argAddr(V));
   }
   if (isSet(E)) {
     tasks.currentEpoch = ethCall(E, SEL.currentEpoch);
@@ -1614,9 +1663,10 @@ function renderChain() {
   const ch = view.chain;
   if (!ch) return;
 
-  // Панель продажи живёт из тех же данных, что и карточки, — считаем её
-  // первой, чтобы ранние выходы ниже не оставили её с прошлыми числами.
+  // Панель продажи и сводка живут из тех же данных, что и карточки, —
+  // считаем их первыми, чтобы ранние выходы ниже не оставили прошлые числа.
   renderSale();
+  renderMarket();
 
   if (ch.kind === 'noAddresses') {
     pendingCards(t('card.na.address'));
@@ -3569,6 +3619,180 @@ function updateLastPrice(all, iA, iB, decimals) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
+ *  СВОДКА РЫНКА: цена, капитализация, FDV, ликвидность, объём.
+ *
+ *  Все величины считаются из данных цепочки. Единственное, чего на цепочке
+ *  нет, — курс газового токена к доллару; он приходит от стороннего сервиса
+ *  и может не прийти вовсе. Тогда цифры остаются в ETH: доллары здесь
+ *  удобство, а не источник истины.
+ *
+ *  Про «ликвидность». У кривой нет пула, и сравнивать её с DEX-парой нельзя.
+ *  Ближайшая честная величина — резерв: это ETH, которым обеспечен обратный
+ *  выкуп. Он покрывает все непогашенные права выкупа и ничего сверх них.
+ * ───────────────────────────────────────────────────────────────────────── */
+
+const fiat = { usd: null, at: null, failed: false };
+
+async function loadEthUsd(force = false) {
+  const cfg = CONFIG.price;
+  if (!cfg || !cfg.url) return null;
+  if (!force && fiat.usd && fiat.at && Date.now() - fiat.at < cfg.ttlMs) return fiat.usd;
+
+  try {
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), CONFIG.ui.rpcTimeoutMs) : null;
+    let res;
+    try {
+      res = await fetch(cfg.url, {
+        // Ни кук, ни кэша: сервису не за что зацепиться, кроме самого запроса.
+        credentials: 'omit',
+        cache: 'no-store',
+        signal: ctrl ? ctrl.signal : undefined
+      });
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    let value = await res.json();
+    cfg.path.forEach((key) => { value = value == null ? null : value[key]; });
+    const num = Number(value);
+    if (!Number.isFinite(num) || num <= 0) throw new Error('bad price');
+
+    fiat.usd = num;
+    fiat.at = Date.now();
+    fiat.failed = false;
+  } catch (_) {
+    // Курс — необязательная роскошь. Не пришёл — показываем ETH и молчим.
+    fiat.failed = true;
+  }
+  renderMarket();
+  return fiat.usd;
+}
+
+/** Доллары: от долей цента до тысяч одной функцией. */
+function fmtUsd(value) {
+  if (!Number.isFinite(value)) return null;
+  if (value === 0) return '$0';
+  const abs = Math.abs(value);
+  if (abs >= 1000) return '$' + groupDigits(Math.round(value).toString());
+  if (abs >= 1) return '$' + value.toFixed(2);
+  if (abs >= 0.01) return '$' + value.toFixed(4);
+  // Мельче цента круглые знаки бессмысленны — держим значащие цифры.
+  return '$' + value.toPrecision(4).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+const weiToEth = (wei) => Number(wei) / 1e18;
+
+/**
+ * Сводка из уже прочитанных данных. Возвращает null, пока читать нечего, —
+ * плитки тогда просто не рисуются, а не показывают нули.
+ */
+function marketStats() {
+  const ch = view.chain;
+  if (!ch || ch.kind !== 'data') return null;
+  const r = ch.r;
+  const ok = (k) => !!(r[k] && r[k].ok);
+  if (!ok('spotPrice') || !ok('totalSupply')) return null;
+
+  const ONE = 10n ** 18n;
+  const spot = uint(r.spotPrice.value);        // wei за один целый токен
+  const total = uint(r.totalSupply.value);     // базовые единицы
+
+  // Считаем обращение только если прочитаны ВСЕ вычитаемые балансы: иначе
+  // капитализация окажется завышенной, а понять это по цифре нельзя.
+  const balKeys = ['balDead', 'balEmission', 'balCurve', 'balVesting'];
+  const haveBalances = balKeys.every(ok);
+  let locked = 0n;
+  balKeys.forEach((k) => { if (ok(k)) locked += uint(r[k].value); });
+  const circulating = haveBalances ? (total > locked ? total - locked : 0n) : null;
+
+  let vol24 = 0n;
+  let volAll = 0n;
+  const since = Math.floor(Date.now() / 1000) - 86400;
+  (chart.trades || []).forEach((tr) => {
+    volAll += tr.ethWei;
+    if (tr.ts >= since) vol24 += tr.ethWei;
+  });
+
+  return {
+    spotWei: spot,
+    priceEth: weiToEth(spot),
+    total,
+    circulating,
+    fdvEth: weiToEth((total * spot) / ONE),
+    mcapEth: circulating === null ? null : weiToEth((circulating * spot) / ONE),
+    reserveEth: ok('reserve') ? weiToEth(uint(r.reserve.value)) : null,
+    vol24Eth: weiToEth(vol24),
+    volAllEth: weiToEth(volAll),
+    tradesKnown: !!chart.trades
+  };
+}
+
+function mstat(labelKey, usdValue, ethValue, naKey, subOverride) {
+  const box = document.createElement('div');
+  box.className = 'mstat';
+
+  const k = document.createElement('span');
+  k.className = 'k';
+  k.textContent = t(labelKey);
+  box.appendChild(k);
+
+  const v = document.createElement('span');
+  v.className = 'v';
+  const s = document.createElement('span');
+  s.className = 's';
+
+  if (ethValue === null || ethValue === undefined) {
+    v.textContent = '—';
+    v.classList.add('is-na');
+    if (naKey) s.textContent = t(naKey);
+  } else {
+    const gas = CONFIG.chain.currency.symbol;
+    // Цена одного токена в ETH — это 2e-9, и в таком виде она нечитаема.
+    // Для неё подпись приходит готовой, в gwei, как и везде на странице.
+    const eth = subOverride
+      || (ethValue < 0.000001 && ethValue > 0 ? ethValue.toPrecision(3) : ethValue.toFixed(6).replace(/0+$/, '').replace(/\.$/, '')) + ' ' + gas;
+    const usd = usdValue === null ? null : fmtUsd(usdValue);
+    // Доллары наверх, если они есть; иначе главной строкой становится ETH.
+    v.textContent = usd || eth;
+    s.textContent = usd ? eth : '';
+  }
+
+  box.append(v, s);
+  return box;
+}
+
+function renderMarket() {
+  const box = $('#market-stats');
+  const note = $('#market-note');
+  if (!box) return;
+
+  const m = marketStats();
+  box.textContent = '';
+  if (!m) { if (note) note.textContent = ''; return; }
+
+  const usd = fiat.usd;
+  const inUsd = (eth) => (usd && eth !== null && eth !== undefined ? eth * usd : null);
+
+  box.appendChild(mstat('market.price', inUsd(m.priceEth), m.priceEth, null,
+    fmtGwei(Number(m.spotWei)) + ' gwei'));
+  box.appendChild(mstat('market.mcap', inUsd(m.mcapEth), m.mcapEth, 'market.mcap.na'));
+  box.appendChild(mstat('market.fdv', inUsd(m.fdvEth), m.fdvEth));
+  box.appendChild(mstat('market.liquidity', inUsd(m.reserveEth), m.reserveEth));
+  box.appendChild(mstat('market.vol24', inUsd(m.vol24Eth), m.tradesKnown ? m.vol24Eth : null, 'market.vol.na'));
+  box.appendChild(mstat('market.volAll', inUsd(m.volAllEth), m.tradesKnown ? m.volAllEth : null, 'market.vol.na'));
+
+  if (note) {
+    const parts = [t('market.note')];
+    if (!CONFIG.price || !CONFIG.price.url) parts.push(t('market.usd.off'));
+    else if (fiat.failed && !usd) parts.push(t('market.usd.failed', { gas: CONFIG.chain.currency.symbol }));
+    else if (usd) parts.push(t('market.usd.src', { src: CONFIG.price.source, rate: fmtUsd(usd), gas: CONFIG.chain.currency.symbol }));
+    note.textContent = parts.join(' ');
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
  *  ЖУРНАЛ ОПЕРАЦИЙ.
  *
  *  Основа — полный лог Transfer токена, а не события кривой. Так в таблицу
@@ -4112,6 +4336,7 @@ function setLang(lang) {
   renderLinkGrid();
   renderChain();
   renderSale();
+  renderMarket();
   renderStatus();
   renderQuote();
   renderSellQuote();
@@ -4198,8 +4423,8 @@ function init() {
   $$('.seg-btn[data-mode]').forEach((b) => b.addEventListener('click', () => { chart.mode = b.dataset.mode; renderChart(); }));
   // Журнал перечитываем вместе со сделками: цена в его строках берётся из
   // событий кривой, и рассинхрон двух источников был бы заметен.
-  $('#chart-reload').addEventListener('click', () => loadTrades(true).then(() => renderActivity()));
-  $('#act-reload').addEventListener('click', () => loadTrades(true).then(() => loadActivity(true)));
+  $('#chart-reload').addEventListener('click', () => loadTrades(true).then(() => { renderMarket(); renderActivity(); }));
+  $('#act-reload').addEventListener('click', () => loadTrades(true).then(() => { renderMarket(); return loadActivity(true); }));
   $$('.seg-btn[data-act]').forEach((b) => b.addEventListener('click', () => {
     activity.filter = b.dataset.act;
     activity.limit = ACT_PAGE;
@@ -4244,12 +4469,16 @@ function init() {
   refresh();
   renderChart();
   renderActivity();
+  renderMarket();
+  loadEthUsd();
   // Сначала сделки, потом журнал: в журнале цена берётся из событий кривой.
-  loadTrades().then(() => loadActivity());
+  loadTrades().then(() => { renderMarket(); return loadActivity(); });
 
   if (CONFIG.ui.autoRefreshMs > 0) {
     setInterval(() => {
-      if (document.visibilityState === 'visible') refresh();
+      if (document.visibilityState !== 'visible') return;
+      refresh();
+      loadEthUsd();
     }, CONFIG.ui.autoRefreshMs);
   }
 }
