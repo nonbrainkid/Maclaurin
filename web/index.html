@@ -44,6 +44,7 @@
         <a href="#mechanics" data-i18n="nav.mechanics">Mechanics</a>
         <a href="#immutable" data-i18n="nav.immutable">Immutability</a>
         <a href="#buy" data-i18n="nav.buy">Buy</a>
+        <a href="#activity" data-i18n="nav.activity">Activity</a>
         <a href="#contracts" data-i18n="nav.contracts">Contracts</a>
         <a href="#risks" data-i18n="nav.risks">Risks</a>
       </nav>
@@ -735,9 +736,57 @@
   </div>
 </section>
 
+<!-- ────────────────────────────  ACTIVITY  ────────────────────────── -->
+<section id="activity" class="wrap">
+  <p class="eyebrow"><span data-i18n="eyebrow.activity">05 — Activity</span></p>
+  <h2 data-i18n="act.h2">Every transaction with the token</h2>
+  <p class="section-lede" data-i18n-html="act.lede">
+    The full <code>Transfer</code> log of the token, read from the chain with
+    <span class="mono">eth_getLogs</span>. Every movement of MACLRN is here —
+    genesis, the burn, and each purchase and sale on the curve. Rows that are
+    curve trades carry the price and the amount of ETH, taken from the curve's
+    own event in the same transaction, so nothing is counted twice.
+  </p>
+
+  <div class="act-bar">
+    <div class="seg" role="group" data-i18n-aria="act.filter.aria" aria-label="Filter">
+      <button type="button" class="seg-btn" data-act="all" aria-pressed="true" data-i18n="act.filter.all">All</button>
+      <button type="button" class="seg-btn" data-act="trade" data-i18n="act.filter.trades">Trades</button>
+      <button type="button" class="seg-btn" data-act="transfer" data-i18n="act.filter.transfers">Transfers</button>
+    </div>
+    <span id="act-status" class="act-status"></span>
+    <button id="act-reload" type="button" class="btn btn-ghost" data-i18n="act.reload">Reload</button>
+  </div>
+
+  <div class="table-scroll">
+    <table class="act-table">
+      <thead>
+        <tr>
+          <th data-i18n="act.th.time">Time</th>
+          <th data-i18n="act.th.type">Type</th>
+          <th data-i18n="act.th.amount">Amount</th>
+          <th data-i18n="act.th.value">Value</th>
+          <th data-i18n="act.th.price">Price</th>
+          <th data-i18n="act.th.from">From</th>
+          <th data-i18n="act.th.to">To</th>
+          <th data-i18n="act.th.tx">Tx</th>
+        </tr>
+      </thead>
+      <tbody id="act-rows"></tbody>
+    </table>
+  </div>
+
+  <p class="act-empty" id="act-empty" hidden></p>
+
+  <div class="act-foot">
+    <button id="act-more" type="button" class="btn btn-ghost" hidden></button>
+    <p class="links-inline" id="act-links"></p>
+  </div>
+</section>
+
 <!-- ───────────────────────────  CONTRACTS  ────────────────────────── -->
 <section id="contracts" class="wrap">
-  <p class="eyebrow"><span data-i18n="eyebrow.contracts">05 — Contracts</span></p>
+  <p class="eyebrow"><span data-i18n="eyebrow.contracts">06 — Contracts</span></p>
   <h2 data-i18n="contracts.h2">Contract addresses</h2>
   <p class="section-lede" data-i18n="contracts.lede">
     All four contracts are deployed and verified. Copy an address from here and
@@ -755,7 +804,7 @@
 
 <!-- ─────────────────────────────  RISKS  ──────────────────────────── -->
 <section id="risks" class="wrap">
-  <p class="eyebrow"><span data-i18n="eyebrow.risks">06 — Risks</span></p>
+  <p class="eyebrow"><span data-i18n="eyebrow.risks">07 — Risks</span></p>
   <h2 data-i18n="risks.h2">Risks. Read this before buying</h2>
 
   <div class="risk-box">
@@ -833,7 +882,7 @@
 
 <!-- ─────────────────────────────  LINKS  ──────────────────────────── -->
 <section id="links" class="wrap">
-  <p class="eyebrow"><span data-i18n="eyebrow.links">07 — Verify</span></p>
+  <p class="eyebrow"><span data-i18n="eyebrow.links">08 — Verify</span></p>
   <h2 data-i18n="links.h2">Verify</h2>
   <div class="link-grid" id="link-grid"></div>
   <p class="footnote" data-i18n="links.footnote">
