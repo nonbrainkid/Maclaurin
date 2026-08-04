@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Maclaurin Series (MACLRN) — supply is e, emission is 1/n!</title>
-<meta name="description" content="An ERC-20 whose issuance schedule is literally the Maclaurin series for e. Supply is bounded by arithmetic, not by policy: 2 718 281 828.459045235360287471 tokens. Emission stops on its own at epoch 27.">
+<title>Maclaurin (MACLRN) — supply is e, launched on hood.fun</title>
+<meta name="description" content="An ERC-20 whose total supply is the number e × 10⁹: exactly 2 718 281 828 tokens. Launched on hood.fun on Robinhood Chain.">
 <meta name="color-scheme" content="dark light">
 <meta name="referrer" content="no-referrer">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,10 +47,7 @@
       <nav class="site-nav" data-i18n-aria="nav.aria" aria-label="Sections">
         <a href="#live" data-i18n="nav.live">Live data</a>
         <a href="#mechanics" data-i18n="nav.mechanics">Mechanics</a>
-        <a href="#immutable" data-i18n="nav.immutable">Immutability</a>
         <a href="#buy" data-i18n="nav.buy">Buy</a>
-        <a href="#activity" data-i18n="nav.activity">Activity</a>
-        <a href="#contracts" data-i18n="nav.contracts">Contracts</a>
         <a href="#risks" data-i18n="nav.risks">Risks</a>
       </nav>
 
@@ -117,7 +114,7 @@
       </p>
 
       <div class="hero-actions">
-        <a class="btn btn-primary btn-lg" href="#buy" data-i18n="hero.cta.buy">Buy through the curve</a>
+        <a class="btn btn-primary btn-lg" href="#buy" data-i18n="hero.cta.buy">Buy on hood.fun</a>
         <a class="btn btn-lg" href="#live" data-i18n="hero.cta.verify">Verify on-chain</a>
       </div>
 
@@ -138,46 +135,6 @@
 
     </div>
 
-    <!-- Панель продажи. Все числа приходят с цепочки, в разметке их нет. -->
-    <aside class="sale-card" aria-labelledby="sale-title">
-      <div class="sale-head">
-        <h2 class="sale-title" id="sale-title" data-i18n="sale.h">Bonding curve sale</h2>
-        <span class="sale-chain" id="sale-chain">chain 4663</span>
-      </div>
-
-      <p class="sale-price">
-        <span class="k" data-i18n="sale.price">Spot price</span>
-        <span class="v" id="sale-price-value">—</span>
-        <span class="u" id="sale-price-unit"></span>
-      </p>
-
-      <div class="progress-head">
-        <span data-i18n="sale.sold">Inventory sold</span>
-        <span class="num" id="sale-progress-pct">—</span>
-      </div>
-      <div class="progress" role="progressbar" id="sale-progress" aria-valuemin="0" aria-valuemax="100" data-i18n-aria="sale.sold" aria-label="Inventory sold">
-        <i id="sale-progress-fill"></i>
-      </div>
-
-      <dl class="sale-rows">
-        <div>
-          <dt data-i18n="sale.remaining">Remaining inventory</dt>
-          <dd id="sale-remaining">—</dd>
-        </div>
-        <div>
-          <dt data-i18n="sale.reserve">Curve reserve</dt>
-          <dd id="sale-reserve">—</dd>
-        </div>
-        <div>
-          <dt data-i18n="sale.epoch">Emission epoch</dt>
-          <dd id="sale-epoch">—</dd>
-        </div>
-      </dl>
-
-      <a class="btn btn-primary btn-block sale-cta" href="#buy" data-i18n="sale.cta">Open the buy panel</a>
-      <p class="sale-foot" data-i18n="sale.foot">Read live from the contracts on every page load.</p>
-    </aside>
-
   </div>
 
   <!-- Пояснение к названию стоит после сетки, а не внутри левой колонки:
@@ -196,18 +153,8 @@
   <dl class="facts">
     <div>
       <dt data-i18n="hero.fact.supply.dt">Total supply</dt>
-      <dd class="mono">2 718 281 828.459045235360287471</dd>
-      <dd class="sub" data-i18n-html="hero.fact.supply.sub">= floor(e × 10<sup>27</sup>) base units, 18 decimals</dd>
-    </div>
-    <div>
-      <dt data-i18n="hero.fact.reward.dt">Epoch n reward</dt>
-      <dd class="mono">10<sup>27</sup> / n!</dd>
-      <dd class="sub" data-i18n="hero.fact.reward.sub">an epoch is 7 days; emission runs from n = 2 through n = 26</dd>
-    </div>
-    <div>
-      <dt data-i18n="hero.fact.end.dt">End of emission</dt>
-      <dd class="mono">n = 27</dd>
-      <dd class="sub" data-i18n-html="hero.fact.end.sub">10<sup>27</sup>/27! = 0 under integer division</dd>
+      <dd class="mono">2 718 281 828</dd>
+      <dd class="sub" data-i18n-html="hero.fact.supply.sub">= floor(e × 10<sup>9</sup>)</dd>
     </div>
   </dl>
 </section>
@@ -235,30 +182,6 @@
 
   <div class="metrics">
 
-    <article class="metric" id="m-epoch">
-      <h3 data-i18n="card.epoch.h">Current epoch</h3>
-      <p class="metric-value" data-field="value">—</p>
-      <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note" data-i18n-html="card.epoch.note"><code>currentEpoch()</code> — emission contract</p>
-      <p class="metric-links"></p>
-    </article>
-
-    <article class="metric" id="m-epochamount">
-      <h3 data-i18n="card.epochAmount.h">Current epoch reward</h3>
-      <p class="metric-value" data-field="value">—</p>
-      <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note" data-i18n-html="card.epochAmount.note"><code>epochAmount(n)</code> — exactly 10<sup>27</sup>/n! base units</p>
-      <p class="metric-links"></p>
-    </article>
-
-    <article class="metric" id="m-emissionend">
-      <h3 data-i18n="card.emissionEnd.h">End of emission</h3>
-      <p class="metric-value" data-field="value">—</p>
-      <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note" data-i18n-html="card.emissionEnd.note"><code>emissionEnd()</code> — the moment after which issuance is impossible</p>
-      <p class="metric-links"></p>
-    </article>
-
     <article class="metric" id="m-supply">
       <h3 data-i18n="card.supply.h">Total supply</h3>
       <p class="metric-value" data-field="value">—</p>
@@ -267,51 +190,11 @@
       <p class="metric-links"></p>
     </article>
 
-    <article class="metric" id="m-sold">
-      <h3 data-i18n="card.sold.h">Sold by the curve</h3>
-      <p class="metric-value" data-field="value">—</p>
-      <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note" data-i18n-html="card.sold.note"><code>sold()</code> / <code>INVENTORY()</code></p>
-      <p class="metric-links"></p>
-    </article>
-
-    <article class="metric" id="m-price">
-      <h3 data-i18n="card.price.h">Spot price</h3>
-      <p class="metric-value" data-field="value">—</p>
-      <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note" data-i18n-html="card.price.note"><code>spotPrice()</code> — price of one whole token</p>
-      <p class="metric-links"></p>
-    </article>
-
-    <article class="metric" id="m-reserve">
-      <h3 data-i18n="card.reserve.h">Curve reserve</h3>
-      <p class="metric-value" data-field="value">—</p>
-      <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note" data-i18n-html="card.reserve.note"><code>reserve()</code> — backing for buy-backs</p>
-      <p class="metric-links"></p>
-    </article>
-
-    <article class="metric" id="m-weight">
-      <h3 data-i18n="card.weight.h">Total staking weight</h3>
-      <p class="metric-value" data-field="value">—</p>
-      <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note" data-i18n-html="card.weight.note"><code>totalWeight()</code> — the reward divisor; <code>totalStaked()</code> — deposit principal</p>
-      <p class="metric-links"></p>
-    </article>
-
     <article class="metric" id="m-identity">
       <h3 data-i18n="card.identity.h">Name and ticker in the contract</h3>
       <p class="metric-value" data-field="value">—</p>
       <p class="metric-sub" data-field="sub"></p>
       <p class="metric-note" data-i18n-html="card.identity.note"><code>name()</code>, <code>symbol()</code>, <code>decimals()</code> — as written in the bytecode</p>
-      <p class="metric-links"></p>
-    </article>
-
-    <article class="metric" id="m-proxy">
-      <h3 data-i18n="card.proxy.h">Proxy slot (EIP-1967)</h3>
-      <p class="metric-value" data-field="value">—</p>
-      <p class="metric-sub" data-field="sub"></p>
-      <p class="metric-note" data-i18n-html="card.proxy.note"><code>eth_getStorageAt</code> on the implementation slot: zero means there is no proxy behind the contract</p>
       <p class="metric-links"></p>
     </article>
 
@@ -424,491 +307,64 @@
     capable of doing so exists in the contract.
   </p>
 
-  <h3 data-i18n="mech.stake.h">4. Staking: radius of convergence</h3>
-  <p data-i18n-html="mech.stake.p1">
-    Every series converges only inside its own radius. A staker picks a radius
-    <span class="mono">R</span> — the number of epochs the position is locked for.
-    The reward multiplier is the partial sum of that same series up to the
-    <span class="mono">R</span>-th term.
-  </p>
-  <div class="table-scroll">
-    <table>
-      <thead>
-        <tr><th>R</th><th data-i18n="mech.stake.th.lock">Lock</th><th data-i18n="mech.stake.th.mult">Multiplier</th><th data-i18n="mech.stake.th.delta">Increment over previous</th></tr>
-      </thead>
-      <tbody class="mono">
-        <tr><td>1</td><td data-i18n="mech.stake.d7">7 days</td><td>1.000000</td><td>—</td></tr>
-        <tr><td>2</td><td data-i18n="mech.stake.d14">14 days</td><td>2.000000</td><td>+1/1!</td></tr>
-        <tr><td>3</td><td data-i18n="mech.stake.d21">21 days</td><td>2.500000</td><td>+1/2!</td></tr>
-        <tr><td>4</td><td data-i18n="mech.stake.d28">28 days</td><td>2.666666…</td><td>+1/3!</td></tr>
-        <tr><td>5</td><td data-i18n="mech.stake.d35">35 days</td><td>2.708333…</td><td>+1/4!</td></tr>
-        <tr><td>6</td><td data-i18n="mech.stake.d42">42 days</td><td>2.716666…</td><td>+1/5!</td></tr>
-        <tr><td>7</td><td data-i18n="mech.stake.d49">49 days</td><td>2.718055…</td><td>+1/6!</td></tr>
-        <tr class="row-final"><td>∞</td><td>—</td><td>e = 2.718281828459045235</td><td data-i18n="mech.stake.unreachable">unreachable</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p data-i18n-html="mech.stake.p2">
-    The ceiling is the number <span class="mono">e</span> itself, and it is
-    unreachable by construction: a partial sum of the series is strictly less than
-    the sum of the series. This is not a marketing cap that a vote could lift, but
-    a property of a convergent series with positive terms. The constant
-    <span class="mono">E_FIXED</span> sits in the contract precisely so that this
-    unreachability can be checked on-chain.
-  </p>
-  <p data-i18n-html="mech.stake.p3">
-    Rewards are split by weight rather than by deposit size:
-    <span class="mono">weight = staked × multiplier(R)</span>. The deposit
-    principal is tracked by a separate counter and plays no part in the multiplier.
-  </p>
-
-  <h3 data-i18n="mech.locks.h">5. What is locked and what is not</h3>
-  <ul class="rules">
-    <li data-i18n-html="mech.locks.claim">
-      <strong><code>claim()</code> is closed until the lock expires.</strong>
-      Before <span class="mono">unlockTime</span> the call reverts with
-      <code>StillLocked</code>. Otherwise the multiplier would be drained as
-      rewards every epoch, and by the time somebody exited early there would be
-      nothing left to take back.
-    </li>
-    <li data-i18n-html="mech.locks.unstake">
-      <strong><code>unstake()</code> is always open</strong>, including during an
-      active lock. The deposit principal comes back in full, down to the last base
-      unit. The rule “never touch the principal, under any circumstances” is not
-      broken.
-    </li>
-    <li data-i18n-html="mech.locks.forfeit">
-      <strong>Exiting early forfeits the reward.</strong> Everything accrued is
-      zeroed and goes to the remainder-term treasury — in full, even on a partial
-      exit. Proportional forfeiture would look fairer, but it would let somebody
-      withdraw 99.99% of the principal and sit out the rest of the lock with a
-      speck of dust, keeping the reward earned on the full principal.
-    </li>
-    <li data-i18n-html="mech.locks.nokeepers">
-      <strong>No keepers, no oracles.</strong> The only external input to the
-      emission contract is <span class="mono">block.timestamp</span>. There is no
-      price fed from outside, no bot that payouts depend on, no signature without
-      which nothing works.
-    </li>
-  </ul>
-</section>
+  </section>
 
 <!-- ───────────────────────────  IMMUTABILITY  ─────────────────────── -->
 <section id="immutable" class="wrap">
-  <p class="eyebrow"><span data-i18n="eyebrow.imm">03 — Immutability</span></p>
-  <h2 data-i18n="imm.h2">Why nobody can print tokens here</h2>
+  <p class="eyebrow"><span data-i18n="eyebrow.imm">03 — Platform</span></p>
+  <h2 data-i18n="imm.h2">Launched on hood.fun</h2>
 
   <p data-i18n-html="imm.p1">
-    The most common way to rug a token is not an exploit but a perfectly
-    legitimate <code>mint(address,uint256) onlyOwner</code>. The owner prints
-    themselves a trillion tokens and sells. An audit passes a contract like that:
-    there is no vulnerability in it, there is a documented privilege. The only
-    defence against it is for the function not to be in the bytecode at all.
+    The token is launched through <a href="https://hood.fun" target="_blank" rel="noopener noreferrer">hood.fun</a> —
+    the native launchpad on Robinhood Chain. The bonding curve, liquidity graduation, and
+    fee distribution are handled entirely by the platform's audited contracts.
   </p>
 
   <ul class="rules">
-    <li data-i18n-html="imm.mint"><strong>There is no <code>mint</code> function in the bytecode.</strong> The entire supply was issued once, in the token constructor. After the constructor there is no function in the contract that changes supply.</li>
-    <li data-i18n-html="imm.owner"><strong>There is no owner.</strong> <code>Ownable</code> is not used in any of the contracts — there is no ownership to renounce, and no need to. No <code>owner()</code>, no roles, no privileged multisig.</li>
-    <li data-i18n-html="imm.proxy"><strong>There is no proxy.</strong> An upgradeable token is the same <code>mint</code>, only hidden behind a proxy. The EIP-1967 implementation slot is read on this very page: it is zero.</li>
-    <li data-i18n-html="imm.plain"><strong>No pause, no blacklist, no transfer tax, no hooks.</strong> A plain OpenZeppelin ERC-20 with nothing bolted on.</li>
-    <li data-i18n-html="imm.reserve"><strong>The deployer has no access to the curve reserve.</strong> No function that would move <code>reserve</code> anywhere other than to a seller exists in the contract; the fee lives in a separate counter and never mixes with the reserve.</li>
+    <li data-i18n-html="imm.platform"><strong>Platform-managed liquidity.</strong> hood.fun handles the bonding curve and automatically graduates the token to a DEX once it reaches the market cap threshold ($50.7K). No manual liquidity provisioning is needed.</li>
+    <li data-i18n-html="imm.community"><strong>Community-first.</strong> The community board is enabled, allowing holders to participate in discussions directly on the token's page.</li>
+    <li data-i18n-html="imm.supply"><strong>Custom supply preserved.</strong> The total supply is set to exactly 2 718 281 828 — the integer part of e × 10<sup>9</sup>. The mathematical identity of the token is baked into its genesis parameters, not into a separate emission contract.</li>
+    <li data-i18n-html="imm.transparent"><strong>Fully transparent.</strong> Every transaction, every holder, and the full contract source are visible on the Robinhood Chain explorer. The token contract address is shown on this page and can be independently verified.</li>
   </ul>
-
-  <h3 data-i18n="imm.verify.h">Check it yourself, without trusting this site</h3>
-  <p data-i18n-html="imm.verify.p">
-    Below are commands that search the deployed bytecode for the selectors of
-    privileged functions. Empty <span class="mono">grep</span> output means the
-    function is not in the contract. Addresses are substituted automatically from
-    this page's configuration, but they are worth checking against the link to the
-    verified source.
-  </p>
-  <pre class="code-block" id="verify-commands"><code>—</code></pre>
-  <p class="footnote" data-i18n-html="imm.verify.footnote">
-    <code>40c10f19</code> = <code>mint(address,uint256)</code>,
-    <code>8da5cb5b</code> = <code>owner()</code>,
-    <code>f2fde38b</code> = <code>transferOwnership(address)</code>,
-    <code>3659cfe6</code> = <code>upgradeTo(address)</code>,
-    <code>8456cb59</code> = <code>pause()</code>.
-    Selectors are the first 4 bytes of the keccak256 hash of the signature — you
-    can derive them yourself with <span class="mono">cast sig</span>.
-  </p>
-  <p id="verified-sources" class="links-inline"></p>
 </section>
 
 <!-- ──────────────────────────  CURVE / BUY  ───────────────────────── -->
 <section id="buy" class="wrap">
   <p class="eyebrow"><span data-i18n="eyebrow.buy">04 — Buy</span></p>
-  <h2 data-i18n="buy.h2">Buying through the bonding curve</h2>
+  <h2 data-i18n="buy.h2">Buy MACLRN</h2>
 
   <p data-i18n="buy.p1">
-    There is no liquidity pool: a pool needs capital the project does not have,
-    and at shallow depth a few dollars of buying moves the price by tens of
-    percent. In its place is a curve contract that holds an inventory of
-    1 000 000 000 tokens (half of genesis, laid out along the geometric series
-    2 = 1 + 1/2 + 1/4 + …) and sells them at a linearly rising price.
+    MACLRN is available on hood.fun, the native launchpad on Robinhood Chain.
+    Connect your wallet, swap ETH for MACLRN, and you're in.
   </p>
 
-  <!-- Сводка рынка. Всё, кроме курса доллара, считается из данных цепочки;
-       плитки строит скрипт, чтобы подписи жили в одном словаре. -->
-  <div class="market-stats" id="market-stats"></div>
-  <p class="footnote" id="market-note"></p>
-
-  <!-- График. Свечи строятся из событий Bought/Sold самой кривой, прочитанных
-       через eth_getLogs. Никакого бэкенда и никакого индексатора: если сделок
-       нет, здесь честно пусто, а не нарисованная «история». -->
-  <div class="chart-card">
-    <div class="chart-head">
-      <div class="chart-price">
-        <span class="k" data-i18n="chart.last">Last trade price</span>
-        <span class="v" id="chart-last">—</span>
-        <span class="chg" id="chart-change"></span>
-      </div>
-      <div class="chart-controls">
-        <div class="seg" role="group" data-i18n-aria="chart.tf.aria" aria-label="Timeframe">
-          <button type="button" class="seg-btn" data-tf="1s">1s</button>
-          <button type="button" class="seg-btn" data-tf="15s">15s</button>
-          <button type="button" class="seg-btn" data-tf="1m">1m</button>
-          <button type="button" class="seg-btn" data-tf="5m">5m</button>
-          <button type="button" class="seg-btn" data-tf="15m">15m</button>
-          <button type="button" class="seg-btn" data-tf="1h" aria-pressed="true">1H</button>
-          <button type="button" class="seg-btn" data-tf="4h">4H</button>
-          <button type="button" class="seg-btn" data-tf="1d">1D</button>
-        </div>
-
-        <!-- Произвольный интервал: «45s», «2m», «1.5h», «3d» или просто число
-             секунд. Пресеты — частые случаи, здесь всё остальное. -->
-        <input id="tf-custom" class="tf-custom" type="text" inputmode="text" autocomplete="off"
-               spellcheck="false" maxlength="8" placeholder="30s"
-               data-i18n-aria="chart.custom.aria" data-i18n-title="chart.custom.hint"
-               aria-label="Custom timeframe">
-        <div class="seg" role="group" data-i18n-aria="chart.mode.aria" aria-label="Chart mode">
-          <button type="button" class="seg-btn" data-mode="candles" aria-pressed="true" data-i18n="chart.mode.candles">Candles</button>
-          <button type="button" class="seg-btn" data-mode="curve" data-i18n="chart.mode.curve">Curve</button>
-        </div>
-        <button id="chart-reset-zoom" type="button" class="btn btn-ghost" aria-label="Reset zoom" hidden style="padding: 4px 8px;">Reset Zoom</button>
-        <button id="chart-resize" type="button" class="btn btn-ghost" aria-label="Resize chart" style="padding: 4px 8px; font-size: .75rem;">Expand</button>
-      </div>
-    </div>
-
-    <div class="chart-body">
-      <svg id="chart-svg" role="img" data-i18n-aria="chart.aria" aria-label="Price chart">
-  <defs>
-    <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="var(--accent)" stop-opacity="1" />
-      <stop offset="100%" stop-color="var(--accent)" stop-opacity="0" />
-    </linearGradient>
-  </defs>
-</svg>
-      <div class="chart-legend" id="chart-legend" hidden></div>
-      <p class="chart-hint" id="chart-hint" data-i18n="chart.hint">Scroll to zoom · drag to pan · drag an axis to scale it · double-click to reset</p>
-      <p class="chart-empty" id="chart-empty" hidden></p>
-    </div>
-
-    <div class="chart-foot">
-      <span id="chart-status"></span>
-      <button id="chart-reload" type="button" class="btn btn-ghost" data-i18n="chart.reload">Reload trades</button>
-    </div>
+  <div class="buy-panel" style="text-align:center; padding: 2rem 0;">
+    <a id="hoodfun-link" class="btn btn-primary btn-lg" href="#" target="_blank" rel="noopener noreferrer" data-i18n="buy.action.buy">Buy on hood.fun</a>
+    <p class="footnote" style="margin-top:1rem;">The link will be active once the token is launched.</p>
   </div>
-
-  <div class="buy-panel">
-    <div class="buy-wallet">
-      <div class="wallet-id">
-        <img id="wallet-avatar" class="wallet-avatar" alt="" hidden>
-        <span id="wallet-state" class="wallet-state" role="status" aria-live="polite">Wallet not connected</span>
-      </div>
-      <div class="wallet-actions">
-        <button id="connect" type="button" class="btn" data-i18n="buy.connect">Connect wallet</button>
-        <button id="disconnect" type="button" class="btn btn-ghost" data-i18n="wallet.disconnect" hidden>Disconnect</button>
-      </div>
-    </div>
-
-    <div class="trade-tabs" role="tablist" data-i18n-aria="trade.tabs.aria" aria-label="Buy or sell">
-      <button type="button" class="trade-tab" id="tab-buy" role="tab" aria-selected="true" aria-controls="pane-buy" data-pane="buy" data-i18n="buy.action.buy">Buy</button>
-      <button type="button" class="trade-tab" id="tab-sell" role="tab" aria-selected="false" aria-controls="pane-sell" data-pane="sell" data-i18n="trade.sell">Sell</button>
-    </div>
-
-    <div id="pane-buy" class="trade-pane" role="tabpanel" aria-labelledby="tab-buy">
-      <div class="quick-row">
-        <button type="button" class="chip" data-amount="0.01">0.01</button>
-        <button type="button" class="chip" data-amount="0.05">0.05</button>
-        <button type="button" class="chip" data-amount="0.1">0.1</button>
-        <button type="button" class="chip" id="amount-max" data-i18n="buy.quick.max" data-i18n-title="buy.quick.maxHint">Max</button>
-      </div>
-
-      <div class="buy-form">
-        <div class="field field-main">
-          <label for="in-amount" data-i18n-html="buy.field.amount">Amount in <span data-field="currency">ETH</span></label>
-          <input id="in-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.01" spellcheck="false">
-        </div>
-
-        <button id="do-buy" type="button" class="btn btn-primary btn-lg btn-block" data-i18n="buy.action.buy" disabled>Buy</button>
-
-        <div class="slippage-row">
-          <span class="slippage-label">Slippage <strong id="slippage-display">1%</strong></span>
-          <button id="buy-settings-toggle" type="button" class="btn-settings" aria-label="Adjust settings" aria-expanded="false">⚙ Adjust</button>
-        </div>
-
-        <div class="buy-settings" id="buy-settings" hidden>
-          <div class="settings-grid">
-            <div class="field">
-              <label for="in-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
-              <input id="in-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
-            </div>
-            <div class="field">
-              <label for="in-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
-              <input id="in-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
-            </div>
-          </div>
-          <button id="quote" type="button" class="btn btn-block" data-i18n="buy.action.quote">Get quote</button>
-        </div>
-      </div>
-
-      <div id="quote-out" class="quote-out" hidden></div>
-    </div>
-
-    <!-- Продажа. Кривая выкупает только то, что у неё куплено этим же адресом,
-         поэтому потолок здесь — boughtOf(), а не баланс токенов. -->
-    <div id="pane-sell" class="trade-pane" role="tabpanel" aria-labelledby="tab-sell" hidden>
-      <p class="pane-note" id="sell-limit" data-i18n="sell.limit.none">Connect a wallet to see how much the curve owes you a buy-back for.</p>
-
-      <div class="quick-row">
-        <button type="button" class="chip" data-sell-pct="25">25%</button>
-        <button type="button" class="chip" data-sell-pct="50">50%</button>
-        <button type="button" class="chip" data-sell-pct="100" data-i18n="buy.quick.max" data-i18n-title="sell.quick.maxHint">Max</button>
-      </div>
-
-      <div class="buy-form">
-        <div class="field field-main">
-          <label for="sell-amount" data-i18n-html="sell.field.amount">Amount in <span data-field="token">MACLRN</span></label>
-          <input id="sell-amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0" spellcheck="false">
-        </div>
-
-        <button id="do-sell" type="button" class="btn btn-primary btn-lg btn-block" data-i18n="trade.sell" disabled>Sell</button>
-
-        <div class="slippage-row">
-          <span class="slippage-label">Slippage <strong id="sell-slippage-display">1%</strong></span>
-          <button id="sell-settings-toggle" type="button" class="btn-settings" aria-label="Adjust settings" aria-expanded="false">⚙ Adjust</button>
-        </div>
-
-        <div class="buy-settings" id="sell-settings" hidden>
-          <div class="settings-grid">
-            <div class="field">
-              <label for="sell-slippage" data-i18n="buy.field.slippage">Slippage, %</label>
-              <input id="sell-slippage" type="text" inputmode="decimal" autocomplete="off" value="1" spellcheck="false">
-            </div>
-            <div class="field">
-              <label for="sell-deadline" data-i18n="buy.field.deadline">Deadline, minutes</label>
-              <input id="sell-deadline" type="text" inputmode="numeric" autocomplete="off" value="10" spellcheck="false">
-            </div>
-          </div>
-          <button id="sell-quote" type="button" class="btn btn-block" data-i18n="buy.action.quote">Get quote</button>
-        </div>
-      </div>
-
-      <div id="sell-quote-out" class="quote-out" hidden></div>
-      <p class="footnote" data-i18n="sell.approveNote">Selling takes two transactions: an allowance for exactly the amount being sold, then the sale itself. The page never asks for an unlimited approve.</p>
-    </div>
-
-    <p id="buy-message" class="buy-message" role="status" aria-live="polite"></p>
-  </div>
-
-  <ul class="rules">
-    <li data-i18n-html="buy.rule.trapezoid"><strong>The price rises linearly, so the cost of a purchase is the area of a trapezoid.</strong> Integer multiplication and division only, no exponential approximations. The formula can be recomputed on paper.</li>
-    <li data-i18n-html="buy.rule.ratio"><strong>From the first token to the last, the price rises by exactly a factor of <span class="mono">e</span>:</strong> from 2 gwei to 5.436563656918090470 gwei per whole token. The ratio can be verified on-chain with a single division, because the arithmetic is integer.</li>
-    <li data-i18n-html="buy.rule.fee"><strong>A flat 1% fee in ETH</strong> — a constant, not a variable. It is taken before the reserve is credited on a buy, and out of the already-reduced amount on a sell, so the reserve never funds the fee.</li>
-    <li data-i18n-html="buy.rule.buyback"><strong>The curve is not an exchange: you can only sell back to it what you bought from it.</strong> The purchase right is tied to the address (<code>boughtOf(address)</code>) and does not travel with an ordinary transfer. Otherwise a holder of free genesis tokens or staking rewards would walk off with the buyers' ETH. Tokens acquired anywhere other than the curve are sold on a secondary market, not here.</li>
-    <li data-i18n-html="buy.rule.nodiscretion"><strong>Nothing in the sell path depends on anyone's decision:</strong> only your balance, your own slippage protection and a deadline that has not expired. No pauses, no lists, no cooldown.</li>
-    <li data-i18n-html="buy.rule.antisnipe"><strong>The anti-snipe window has already expired.</strong> It capped purchases at 10 000 000 tokens per address for the first hour after the curve was deployed (<code>antiSnipeEnd()</code> — check it on-chain). That hour is over and no purchase was made during it, so the cap applies to nothing: right now a single transaction can buy the entire remaining inventory. The cap was a mitigation rather than a defence in any case — several wallets bypass it trivially.</li>
-  </ul>
 
   <div class="address-block">
-    <h3 data-i18n="buy.addr.h">Curve contract address</h3>
-    <p class="address-hint" data-i18n="buy.addr.hint">Check it against the address shown in your wallet before you confirm the transaction. No other address is the sale contract.</p>
+    <h3 data-i18n="buy.addr.h">Token contract address</h3>
+    <p class="address-hint" data-i18n="buy.addr.hint">Check it against the address shown in your wallet before you confirm the transaction.</p>
     <div class="address-row">
-      <code id="curve-address" class="address">0x0000000000000000000000000000000000000000</code>
+      <code id="curve-address" class="address">—</code>
       <button id="copy-curve" type="button" class="btn btn-ghost" data-copy-target="curve-address" data-i18n="buy.addr.copy">Copy</button>
     </div>
     <p class="links-inline" id="curve-links"></p>
   </div>
-
-  <details class="table-details">
-    <summary data-i18n="buy.sig.summary">What the wallet actually signs</summary>
-    <p data-i18n-html="buy.sig.p">
-      The call is <code>buy(uint256 minTokensOut, uint256 deadline)</code>, with
-      the amount passed as the transaction's <span class="mono">value</span>.
-      <span class="mono">minTokensOut</span> is derived from the
-      <code>previewBuy(ethIn)</code> quote minus the slippage you set: if the price
-      moves further than that between quoting and execution, the transaction
-      reverts instead of filling at a worse price. Overpaying beyond the remaining
-      inventory is not refunded as change — it reverts — which is why
-      <code>maxEthIn()</code> exists, the exact upper bound at this moment.
-    </p>
-    <pre class="code-block"><code id="calldata-preview">—</code></pre>
-  </details>
-
-  <details class="table-details">
-    <summary data-i18n="buy.sell.summary">How to sell back to the curve</summary>
-    <p data-i18n-html="buy.sell.p1">
-      The Sell tab above does this for you, but the site is not required for it:
-      the same two calls are available in the explorer, and the allowance is for
-      exactly the amount being sold — never an unlimited <code>approve</code>.
-      The order is:
-    </p>
-    <ol class="rules">
-      <li data-i18n-html="buy.sell.step1"><code>approve(curve address, amount)</code> on the token contract — grant an allowance for exactly the amount being sold;</li>
-      <li data-i18n-html="buy.sell.step2"><code>sell(amount, minEthOut, deadline)</code> on the curve contract.</li>
-    </ol>
-    <p data-i18n-html="buy.sell.p2">
-      Both calls are available in the explorer's <em>Write contract</em> tab, which
-      also shows the function body. <code>boughtOf(your address)</code> shows how
-      many tokens the curve is obliged to buy back.
-    </p>
-    <p class="links-inline" id="sell-links"></p>
-  </details>
-
-  <div class="no-wallet" id="no-wallet" hidden>
-    <h3 data-i18n="nowallet.h">No wallet in this browser</h3>
-    <p data-i18n-html="nowallet.p1">
-      The page found no wallet: neither an EIP-6963 announcement nor
-      <span class="mono">window.ethereum</span>. That means no wallet extension is
-      installed or it is disabled for this site. What you can do:
-    </p>
-    <ol class="rules">
-      <li data-i18n="nowallet.step1">install any EVM wallet that supports custom networks (MetaMask or Rabby, for example) from your browser's official extension store;</li>
-      <li data-i18n-html="nowallet.step2">add the network by hand: <span class="mono">Chain ID 4663</span>, RPC <span class="mono" data-field="rpc"></span>, explorer <span class="mono" data-field="explorer"></span>;</li>
-      <li data-i18n="nowallet.step3">fund the address with a little of the network's gas token and come back — the connect button will appear on its own.</li>
-    </ol>
-    <p data-i18n-html="nowallet.p2">
-      Mobile browsers usually do not support extensions: there you need to open
-      this page inside your wallet's built-in browser. A purchase can equally be
-      made by hand from the explorer's <em>Write contract</em> tab — this site is
-      not required for it.
-    </p>
-  </div>
-</section>
-
-<!-- ────────────────────────────  ACTIVITY  ────────────────────────── -->
-<section id="activity" class="wrap">
-  <p class="eyebrow"><span data-i18n="eyebrow.activity">05 — Activity</span></p>
-  <h2 data-i18n="act.h2">Every transaction with the token</h2>
-  <p class="section-lede" data-i18n-html="act.lede">
-    The full <code>Transfer</code> log of the token, read from the chain with
-    <span class="mono">eth_getLogs</span>. Every movement of MACLRN is here —
-    genesis, the burn, and each purchase and sale on the curve. Rows that are
-    curve trades carry the price and the amount of ETH, taken from the curve's
-    own event in the same transaction, so nothing is counted twice.
-  </p>
-
-  <div class="act-bar">
-    <div class="seg" role="group" data-i18n-aria="act.filter.aria" aria-label="Filter">
-      <button type="button" class="seg-btn" data-act="all" aria-pressed="true" data-i18n="act.filter.all">All</button>
-      <button type="button" class="seg-btn" data-act="trade" data-i18n="act.filter.trades">Trades</button>
-      <button type="button" class="seg-btn" data-act="transfer" data-i18n="act.filter.transfers">Transfers</button>
-    </div>
-    <span id="act-status" class="act-status"></span>
-    <button id="act-reload" type="button" class="btn btn-ghost" data-i18n="act.reload">Reload</button>
-  </div>
-
-  <div class="table-scroll">
-    <table class="act-table">
-      <thead>
-        <tr>
-          <th data-i18n="act.th.time">Time</th>
-          <th data-i18n="act.th.type">Type</th>
-          <th data-i18n="act.th.amount">Amount</th>
-          <th data-i18n="act.th.value">Value</th>
-          <th data-i18n="act.th.price">Price</th>
-          <th data-i18n="act.th.from">From</th>
-          <th data-i18n="act.th.to">To</th>
-          <th data-i18n="act.th.tx">Tx</th>
-        </tr>
-      </thead>
-      <tbody id="act-rows"></tbody>
-    </table>
-  </div>
-
-  <p class="act-empty" id="act-empty" hidden></p>
-
-  <div class="act-foot">
-    <button id="act-more" type="button" class="btn btn-ghost" hidden></button>
-    <p class="links-inline" id="act-links"></p>
-  </div>
-</section>
-
-<!-- ───────────────────────────  CONTRACTS  ────────────────────────── -->
-<section id="contracts" class="wrap">
-  <p class="eyebrow"><span data-i18n="eyebrow.contracts">06 — Contracts</span></p>
-  <h2 data-i18n="contracts.h2">Contract addresses</h2>
-  <p class="section-lede" data-i18n="contracts.lede">
-    All four contracts are deployed and verified. Copy an address from here and
-    compare it with the one your wallet shows before you sign anything.
-  </p>
-
-  <div class="contract-list" id="contract-list"></div>
-
-  <p class="footnote" data-i18n="contracts.footnote">
-    Verification means the explorer matched the deployed bytecode against the
-    source. An unverified contract is an unchecked contract, whatever a website
-    says about it.
-  </p>
 </section>
 
 <!-- ─────────────────────────────  RISKS  ──────────────────────────── -->
 <section id="risks" class="wrap">
-  <p class="eyebrow"><span data-i18n="eyebrow.risks">07 — Risks</span></p>
+  <p class="eyebrow"><span data-i18n="eyebrow.risks">05 — Risks</span></p>
   <h2 data-i18n="risks.h2">Risks. Read this before buying</h2>
 
   <div class="risk-box">
     <ul class="rules">
-      <li data-i18n-html="risks.liquidity">
-        <strong>Liquidity is thin and the price is volatile.</strong> Selling the
-        entire inventory collects roughly 3.72 ETH into the reserve — that is the
-        order of magnitude of the whole mechanism, not the size of a market. Any
-        sizeable trade moves the price noticeably in either direction. This is a
-        working demonstration of a full cycle, not a deep market.
-      </li>
-      <li data-i18n-html="risks.notExchange">
-        <strong>The curve is not an exchange.</strong> It buys back only what was
-        bought from it, and only from the address that bought it. Tokens obtained
-        by any other route cannot be sold to the curve. There may be no secondary
-        market at all.
-      </li>
-      <li data-i18n-html="risks.exitPrice">
-        <strong>The curve buys back at its current price, not at the price you
-        paid.</strong> The reserve always covers every outstanding buy-back, so
-        <code>sell()</code> can never fail for lack of funds — but the amount of
-        ETH it returns depends on how much has been sold at that moment, not on
-        your entry. If other buyers exit before you do, the price falls back
-        along the curve and you receive less than you put in — in the worst case
-        (you bought at the top of the inventory, everyone else sold first) about
-        63% less, which is the factor <span class="mono">e</span> the price
-        spans. This is a first-in-best-out mechanism, not a refund.
-      </li>
-      <li data-i18n-html="risks.concentration">
-        <strong>The whole inventory costs about 3.76 ETH, and one address can
-        take all of it.</strong> That is small enough that a single actor can buy
-        the entire billion-token inventory in one transaction, stake it, collect
-        essentially the whole 718 281 828-token emission pool — rewards are split
-        by weight, and their weight would be the divisor — then sell the
-        inventory back to the curve at the same average price and recover the
-        ETH. The round trip costs only the two 1% fees. Nothing in the contracts
-        prevents this, and staking alongside such a position yields a
-        proportionally negligible share.
-      </li>
       <li data-i18n-html="risks.experimental">
-        <strong>The project is experimental.</strong> The contracts are immutable:
-        a bug cannot be patched and there is no upgrade path. That is at once the
-        principal guarantee and the principal risk.
-      </li>
-      <li data-i18n-html="risks.audit">
-        <strong>An audit is not insurance.</strong> Tests, static analysis and
-        independent review lower the probability of a bug but do not prove its
-        absence. Only some of the properties are formally proven.
-      </li>
-      <li data-i18n-html="risks.noYield">
-        <strong>The token has no yield and owes you nothing.</strong> Staking
-        rewards are a redistribution of a pre-issued emission pool, not profit from
-        any activity. Nobody promises price appreciation and nobody can deliver it.
+        <strong>The project is experimental.</strong> The token is launched on a platform
+        whose contracts are managed by hood.fun. While the platform is audited, no
+        audit eliminates all risk.
       </li>
       <li data-i18n-html="risks.network">
         <strong>The network is new.</strong> Robinhood Chain, its public RPC
@@ -917,10 +373,8 @@
         the contracts from a browser.
       </li>
       <li data-i18n-html="risks.legal">
-        <strong>The legal status is unsettled.</strong> A token with a
-        reward-distribution mechanism may qualify as a security in a number of
-        jurisdictions. A direct sale from a website by the asset's author is not
-        the same thing as providing liquidity on a DEX. This is not legal advice;
+        <strong>The legal status is unsettled.</strong> A token may qualify as a
+        security in a number of jurisdictions. This is not legal advice;
         compliance with your local law is your responsibility.
       </li>
       <li data-i18n-html="risks.size">
@@ -931,22 +385,7 @@
   </div>
 </section>
 
-<!-- ─────────────────────────────  LINKS  ──────────────────────────── -->
-<section id="links" class="wrap">
-  <p class="eyebrow"><span data-i18n="eyebrow.links">08 — Verify</span></p>
-  <h2 data-i18n="links.h2">Verify</h2>
-  <div class="link-grid" id="link-grid"></div>
-  <p class="footnote" data-i18n="links.footnote">
-    Contract links point to verified sources in the explorer: that is where the
-    bytecode is matched and where you read the same code that sits in the
-    repository. Treat an unverified contract as unchecked, whatever a website says
-    about it.
-  </p>
-</section>
-
 </main>
-
-<div id="admin-container"></div>
 
 <footer class="site-footer">
   <div class="wrap">
@@ -954,10 +393,10 @@
       <div>
         <p class="brand" style="margin-bottom:.5rem">
           <span class="brand-mark" aria-hidden="true">Σ 1/n!</span>
-          <span class="brand-name">Maclaurin Series</span>
+          <span class="brand-name">Maclaurin</span>
           <span class="brand-ticker">MACLRN</span>
         </p>
-        <p class="footnote" data-i18n="footer.tagline" style="margin:0">Supply is e. Emission is 1/n!.</p>
+        <p class="footnote" data-i18n="footer.tagline" style="margin:0">Supply is e. Launched on hood.fun.</p>
       </div>
       <div class="social-row">
         <a class="social-pill" href="https://t.me/MaclaurinRHC" target="_blank" rel="noopener noreferrer">

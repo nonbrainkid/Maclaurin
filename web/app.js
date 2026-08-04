@@ -73,10 +73,7 @@ const CONFIG = {
   /* ЗАПОЛНИТЬ ПОСЛЕ ДЕПЛОЯ. Пока адрес нулевой, страница не делает по нему
      ни одного запроса и честно пишет «не задан» вместо числа. */
   contracts: {
-    token:    '0xBaBA0F93200280E4105F328cbf604D5aD478aF9b', // ERC-20 MACLRN
-    emission: '0xf746aD563926D11f14cdF13E30991Ae146ccC237', // эмиссия по ряду Маклорена
-    curve:    '0x0E476610374B8aF125A889b7a5179BD214281C2d', // бондинг-кривая
-    vesting:  '0xCe589Ea16093772A5252814d6824b6f736234d7B'  // казна под замком
+    token:    '' // ERC-20 MACLRN — will be set after hood.fun launch
   },
 
   /* ЗАПОЛНИТЬ. Пустая строка => карточка ссылки показывается неактивной
@@ -85,10 +82,10 @@ const CONFIG = {
     repo:      'https://github.com/nonbrainkid/Maclaurin',
     audit:     'https://github.com/nonbrainkid/Maclaurin/blob/master/README.md#свойства-безопасности',
     specToken: 'https://github.com/nonbrainkid/Maclaurin/blob/master/MACLAURIN-TOKEN-SPEC.md',
-    specCurve: 'https://github.com/nonbrainkid/Maclaurin/blob/master/PHASE4-SPEC.md',
 
-    /* Официальные каналы проекта. Разметка берёт их отсюда же, чтобы адрес
-       правился в одном месте, а не в шести. */
+    /* hood.fun page — will be set after launch */
+    hoodFun:   '',
+
     telegram:  'https://t.me/MaclaurinRHC',
     x:         'https://x.com/MaclaurinRHC'
   },
@@ -103,11 +100,10 @@ const CONFIG = {
      curveDeployBlock — блок, в котором развёрнута кривая. Раньше него событий
      не бывает, а сканировать сеть с нуля незачем. */
   chart: {
-    curveDeployBlock: 26807291,
-    tokenDeployBlock: 26805038, // блок конструктора токена: раньше него Transfer'ов нет
-    logChunk: 100000,           // публичные узлы часто режут диапазон eth_getLogs
+    curveDeployBlock: 0,
+    tokenDeployBlock: 0,
+    logChunk: 100000,
     defaultTf: '1h'
-    // Пределы зума и длина серии живут в VIEW рядом с кодом графика.
   },
 
   /* Курс газового токена к доллару.
@@ -4681,147 +4677,3 @@ window.addEventListener('scroll', () => {
   }
 })();
 
-;(function() {
-  let container = document.getElementById('admin-container');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'admin-container';
-    const footer = document.querySelector('.site-footer');
-    if (footer) {
-      footer.parentNode.insertBefore(container, footer);
-    } else {
-      document.body.appendChild(container);
-    }
-  }
-
-  const curve = CONFIG.contracts.curve;
-  if (!container) return;
-
-  let adminPanel = null;
-  let adminAddr = null;
-
-  async function checkAdmin() {
-    if (!state.account) {
-      if (adminPanel) { adminPanel.remove(); adminPanel = null; }
-      return;
-    }
-    
-    // Check if we already know who the admin is
-    if (!adminAddr) {
-      try {
-        const res = await ethCall(curve, SEL.feeRecipient);
-        if (res && res !== '0x') {
-          adminAddr = '0x' + res.slice(-40);
-        }
-      } catch (e) {
-        return;
-      }
-    }
-
-    if (!adminAddr || state.account.toLowerCase() !== adminAddr.toLowerCase()) {
-      if (adminPanel) { adminPanel.remove(); adminPanel = null; }
-      return;
-    }
-
-    if (!adminPanel) {
-      adminPanel = document.createElement('section');
-      adminPanel.id = 'admin-panel';
-      adminPanel.className = 'wrap admin-panel';
-      
-      const html = `
-        <h2 class="admin-title">Creator fees</h2>
-        <p class="admin-subtitle">Pool fees accrue without unlocking the permanent liquidity position.</p>
-        <div class="admin-stats">
-          <div class="admin-stat-box">
-            <span class="admin-stat-title">Accrued ETH</span>
-            <span class="admin-stat-value" id="admin-accrued-eth">—</span>
-            <span class="admin-stat-usd" id="admin-accrued-usd">$0.00</span>
-          </div>
-        </div>
-        <div class="admin-foot">
-          <div class="admin-address">Payout wallet<br><span class="admin-address-val">${shortAddr(adminAddr)}</span></div>
-          <button id="admin-claim-btn" class="btn btn-primary admin-claim-btn" disabled>No fees to claim</button>
-        </div>
-      `;
-      adminPanel.innerHTML = html;
-      container.appendChild(adminPanel);
-
-      const claimBtn = document.getElementById('admin-claim-btn');
-      claimBtn.addEventListener('click', async () => {
-        try {
-          claimBtn.disabled = true;
-          claimBtn.textContent = 'Pending...';
-          const p = activeProvider();
-          
-          if (typeof ensureChain === 'function') {
-            await ensureChain(p);
-          }
-          
-          // Estimate gas to catch reverts early
-          try {
-            await p.request({
-              method: 'eth_estimateGas',
-              params: [{ from: state.account, to: curve, data: SEL.withdrawFees }]
-            });
-          } catch(err) {
-            throw new Error('Transaction will fail (no fees or not admin).');
-          }
-
-          const txHash = await p.request({
-            method: 'eth_sendTransaction',
-            params: [{ from: state.account, to: curve, data: SEL.withdrawFees }]
-          });
-          showToast('Fees claimed successfully: ' + shortAddr(txHash), 'success');
-          setTimeout(updateAdminStats, 2000);
-        } catch (e) {
-          showToast(e.message || 'Transaction failed', 'error');
-        } finally {
-          updateAdminStats();
-        }
-      });
-    }
-
-    updateAdminStats();
-  }
-
-  async function updateAdminStats() {
-    if (!adminPanel || !state.account) return;
-    try {
-      const res = await ethCall(curve, SEL.feesAccrued);
-      const ethWei = BigInt(res === '0x' ? '0' : res);
-      const ethVal = formatUnits(ethWei, 18, 6);
-      
-      const ethEl = document.getElementById('admin-accrued-eth');
-      const usdEl = document.getElementById('admin-accrued-usd');
-      const btn = document.getElementById('admin-claim-btn');
-      
-      if (ethEl) ethEl.textContent = ethVal;
-      
-      if (usdEl) {
-        if (state.usdRate > 0) {
-          const usdVal = (Number(formatUnits(ethWei, 18, 18)) * state.usdRate).toFixed(2);
-          usdEl.textContent = '$' + usdVal;
-        } else {
-          usdEl.textContent = '';
-        }
-      }
-      
-      if (btn) {
-        if (ethWei > 0n) {
-          btn.disabled = false;
-          btn.textContent = 'Take fees';
-        } else {
-          btn.disabled = true;
-          btn.textContent = 'No fees to claim';
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  // Hook into provider events to re-check
-  setInterval(() => {
-    checkAdmin();
-  }, 2000);
-})();
