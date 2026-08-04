@@ -1203,8 +1203,7 @@ function lsSet(key, value) {
 function detectLang() {
   const saved = lsGet(LS_LANG);
   if (saved === 'ru' || saved === 'en') return saved;
-  const nav = (navigator.languages && navigator.languages[0]) || navigator.language || '';
-  return /^ru\b/i.test(nav) ? 'ru' : 'en';
+  return 'en';
 }
 
 /** Перевод по ключу. Плейсхолдеры вида {name} подставляются из params. */
