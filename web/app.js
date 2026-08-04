@@ -105,8 +105,8 @@ const CONFIG = {
   chart: {
     curveDeployBlock: 26807291,
     logChunk: 100000,          // публичные узлы часто режут диапазон eth_getLogs
-    defaultTf: '1h',
-    maxCandles: 120
+    defaultTf: '1h'
+    // Пределы зума и длина серии живут в VIEW рядом с кодом графика.
   },
 
   ui: {
@@ -161,14 +161,42 @@ const EVENTS = {
   sold:   '0x490fdc1c23c0f3a84bf80a0384eaadcb9188c9ef71b9430da391a0e4c4c39bf6'
 };
 
-/** Секунды в одном интервале свечи. Ключи — то, что написано на кнопках. */
+/* Секунды в одном интервале свечи. Ключи — то, что написано на кнопках.
+   Секундные интервалы здесь осмысленны: блок в этой сети идёт примерно раз
+   в 0.1 с, так что одна секунда — это уже несколько блоков, а не пустота. */
 const TIMEFRAMES = {
+  '1s': 1,
+  '15s': 15,
+  '1m': 60,
   '5m': 300,
   '15m': 900,
   '1h': 3600,
   '4h': 14400,
   '1d': 86400
 };
+
+const TF_MIN = 1;
+const TF_MAX = 30 * 86400;
+
+/** «45s», «2m», «1.5h», «1d» или просто число секунд → секунды. */
+function parseTimeframe(str) {
+  const s = String(str || '').trim().toLowerCase().replace(',', '.');
+  const m = /^(\d+(?:\.\d+)?)\s*(s|sec|m|min|h|hr|d)?$/.exec(s);
+  if (!m) return null;
+  const value = parseFloat(m[1]);
+  if (!(value > 0)) return null;
+  const mult = { s: 1, sec: 1, m: 60, min: 60, h: 3600, hr: 3600, d: 86400 }[m[2] || 's'];
+  const sec = Math.round(value * mult);
+  return sec >= TF_MIN && sec <= TF_MAX ? sec : null;
+}
+
+/** Секунды → короткая подпись: 90 → «90s», 300 → «5m», 3600 → «1h». */
+function timeframeLabel(sec) {
+  if (sec % 86400 === 0) return sec / 86400 + 'd';
+  if (sec % 3600 === 0) return sec / 3600 + 'h';
+  if (sec % 60 === 0) return sec / 60 + 'm';
+  return sec + 's';
+}
 
 /* Слоты EIP-1967: keccak256("eip1967.proxy.implementation") − 1 и
    keccak256("eip1967.proxy.admin") − 1. Ненулевое значение в них означает,
@@ -395,6 +423,11 @@ const I18N = {
     'chart.curveNote': 'Price as a function of tokens sold — a pure function of the contract, not a history. The marker is where the curve stands right now.',
     'chart.curveWait': 'Waiting for on-chain data…',
     'chart.axisSold': 'tokens sold',
+    'chart.vol': 'Vol',
+    'chart.hint': 'Scroll to zoom · drag to pan · drag the price or time axis to scale it · double-click to reset',
+    'chart.custom.aria': 'Custom timeframe',
+    'chart.custom.hint': 'Custom candle interval: 45s, 2m, 1.5h, 3d — or a plain number of seconds. From 1 second to 30 days.',
+    'chart.truncated': 'trimmed to the last {from} at this interval',
 
     /* — вкладки и продажа — */
     'trade.sell': 'Sell',
@@ -802,6 +835,11 @@ const I18N = {
     'chart.curveNote': 'Цена как функция проданного объёма — чистая функция контракта, а не история. Маркер показывает, где кривая стоит сейчас.',
     'chart.curveWait': 'Ждём данные с цепочки…',
     'chart.axisSold': 'продано токенов',
+    'chart.vol': 'Объём',
+    'chart.hint': 'Колесо — масштаб · протяжка — сдвиг · протяжка по шкале цены или времени — масштаб по этой оси · двойной клик — сброс',
+    'chart.custom.aria': 'Свой интервал',
+    'chart.custom.hint': 'Свой интервал свечи: 45s, 2m, 1.5h, 3d — или просто число секунд. От 1 секунды до 30 дней.',
+    'chart.truncated': 'обрезано до последних {from} на этом интервале',
 
     /* — вкладки и продажа — */
     'trade.sell': 'Продать',
@@ -2610,14 +2648,45 @@ async function doBuy() {
  * ───────────────────────────────────────────────────────────────────────── */
 
 const chart = {
-  tf: CONFIG.chart.defaultTf,
+  // Источник истины — длина интервала в секундах; tfKey нужен только чтобы
+  // подсветить кнопку пресета (у произвольного интервала кнопки нет).
+  tfSec: TIMEFRAMES[CONFIG.chart.defaultTf] || 3600,
+  tfKey: CONFIG.chart.defaultTf,
   mode: 'candles',
   trades: null,        // [{ts, priceWei, price, ethWei, tokens, kind, block, tx}]
   scanned: null,       // { from, to } — какой диапазон блоков реально прочитан
   loading: false,
   errorText: null,
-  shape: null          // { p0, pFinal, inv, div } для режима кривой
+  shape: null,         // { startWei, finalWei, inv, sold, spotWei } для режима кривой
+
+  candles: null,       // серия, построенная для текущего интервала
+  candlesTf: null,
+
+  /* Окно просмотра — дробный диапазон индексов свечей [i0, i0+span).
+     За края выходить можно намеренно: на биржах справа всегда есть воздух,
+     а слева видно, что история кончилась. null — «ещё не считали». */
+  i0: null,
+  span: null,
+
+  priceZoom: 1,        // множитель вертикального масштаба поверх автоподбора
+  cross: null,         // {x, y} в координатах viewBox
+  drag: null,          // {kind, x, y, i0, span, priceZoom, step}
+  geom: null,          // геометрия последней отрисовки — нужна обработчикам
+  bound: false
 };
+
+/* Пределы, за которые зум не пускаем: иначе одним движением колеса можно
+   улететь в состояние, из которого не видно ни одной свечи. */
+const VIEW = {
+  minSpan: 8,
+  maxSpan: 3000,
+  defaultSpan: 70,
+  maxSeries: 4000,     // потолок длины серии, чтобы 5m за год не съел память
+  minPriceZoom: 0.05,
+  maxPriceZoom: 60
+};
+
+const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -2661,6 +2730,8 @@ async function loadTrades(force = false) {
 
     chart.trades = await decodeTrades(logs);
     chart.scanned = { from, to: latest };
+    chart.candles = null;          // серия пересоберётся из новых сделок
+    chart.candlesTf = null;
   } catch (e) {
     chart.trades = null;
     chart.errorText = t('chart.failed', { reason: (e && e.message) || String(e) });
@@ -2725,8 +2796,11 @@ async function decodeTrades(logs) {
  * Сделки → OHLCV по интервалам. Промежутки без сделок заполняются плоскими
  * свечами: без этого ось времени врала бы — две сделки с разницей в сутки
  * встали бы вплотную, как соседние минуты.
+ *
+ * Строится вся серия целиком, а не «последние N»: окно просмотра теперь
+ * двигается пользователем, и ему должно быть куда двигаться.
  */
-function buildCandles(trades, tfSec, limit) {
+function buildCandles(trades, tfSec) {
   if (!trades || !trades.length) return [];
   const bucketOf = (ts) => Math.floor(ts / tfSec) * tfSec;
 
@@ -2744,10 +2818,10 @@ function buildCandles(trades, tfSec, limit) {
 
   const first = bucketOf(trades[0].ts);
   const last = bucketOf(trades[trades.length - 1].ts);
-  const start = Math.max(first, last - (limit - 1) * tfSec);
+  // 5-минутный интервал за год — это больше ста тысяч свечей, из которых
+  // непустых единицы. Рисовать их незачем, поэтому хвост обрезаем.
+  const start = Math.max(first, last - (VIEW.maxSeries - 1) * tfSec);
 
-  // Цена переноса для первой пустой свечи окна — закрытие последней сделки,
-  // случившейся до окна.
   let carry = null;
   Array.from(map.keys()).sort((a, b) => a - b).forEach((b) => { if (b < start) carry = map.get(b).c; });
 
@@ -2757,20 +2831,76 @@ function buildCandles(trades, tfSec, limit) {
     if (c) { out.push(c); carry = c.c; }
     else if (carry !== null) out.push({ t: b, o: carry, h: carry, l: carry, c: carry, v: 0, n: 0, empty: true });
   }
+  // Секундный интервал на длинной истории упирается в потолок серии. Молча
+  // показать «часть» и назвать это всей историей нельзя — помечаем.
+  out.truncated = start > first;
+  out.from = start;
   return out;
+}
+
+/** Серия для текущего интервала, с кэшем: пересчёт только при смене tf. */
+function chartSeries() {
+  if (!chart.trades || !chart.trades.length) return [];
+  if (chart.candles && chart.candlesTf === chart.tfSec) return chart.candles;
+  chart.candles = buildCandles(chart.trades, chart.tfSec);
+  chart.candlesTf = chart.tfSec;
+  return chart.candles;
+}
+
+function resetView() {
+  chart.i0 = null;
+  chart.span = null;
+  chart.priceZoom = 1;
+}
+
+/** Стартовое окно: последние свечи прижаты вправо, с небольшим полем. */
+function ensureView(n) {
+  if (chart.span === null || !Number.isFinite(chart.span)) {
+    chart.span = clamp(VIEW.defaultSpan, VIEW.minSpan, VIEW.maxSpan);
+  }
+  if (chart.i0 === null || !Number.isFinite(chart.i0)) {
+    chart.i0 = n - chart.span * 0.94;
+  }
+  clampView(n);
+}
+
+/** Уехать совсем в пустоту нельзя: часть серии всегда остаётся на экране. */
+function clampView(n) {
+  chart.span = clamp(chart.span, VIEW.minSpan, VIEW.maxSpan);
+  const lo = -chart.span * 0.9;
+  const hi = Math.max(lo, n - chart.span * 0.1);
+  chart.i0 = clamp(chart.i0, lo, hi);
+}
+
+/** Шаг сетки из «круглых» чисел: 1, 2, 5 × 10^k. */
+function niceStep(range, targetTicks) {
+  if (!(range > 0)) return 1;
+  const raw = range / Math.max(1, targetTicks);
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw / mag;
+  const mult = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
+  return mult * mag;
 }
 
 const GWEI = 1e9;
 const fmtGwei = (wei) => (wei / GWEI).toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
+/** Цена в gwei с фиксированной точностью — чтобы соседние деления шкалы различались. */
+const fmtGweiAt = (wei, decimals) => (wei / GWEI).toFixed(clamp(decimals, 0, 9));
 
-function fmtAxisTime(ts, tfSec) {
+function intlTime(ts, opts) {
   const d = new Date(ts * 1000);
-  try {
-    const opts = tfSec >= 86400
-      ? { day: '2-digit', month: 'short' }
-      : { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' };
-    return new Intl.DateTimeFormat(LOCALE[LANG], opts).format(d);
-  } catch (_) { return d.toISOString().slice(5, 16).replace('T', ' '); }
+  try { return new Intl.DateTimeFormat(LOCALE[LANG], opts).format(d); }
+  catch (_) { return d.toISOString().slice(5, 16).replace('T', ' '); }
+}
+
+const fmtClockShort = (ts) => intlTime(ts, { hour: '2-digit', minute: '2-digit' });
+const fmtDateShort  = (ts) => intlTime(ts, { day: '2-digit', month: '2-digit' });
+const fmtFullTime   = (ts) => intlTime(ts, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+/** Подпись деления оси времени: дату дописываем только когда день сменился. */
+function fmtTickTime(ts, tfSec, withDate) {
+  if (tfSec >= 86400) return fmtDateShort(ts);
+  return withDate ? fmtDateShort(ts) + ' ' + fmtClockShort(ts) : fmtClockShort(ts);
 }
 
 /* ── отрисовка ─────────────────────────────────────────────────────────── */
@@ -2785,127 +2915,374 @@ function chartMessage(text) {
   if (svg) svg.textContent = '';
 }
 
+/** Легенда O/H/L/C над полем — то, что в терминалах читают вместо тултипа. */
+function setLegend(c, tfSec, decimals) {
+  const el = $('#chart-legend');
+  if (!el) return;
+  if (!c) { el.hidden = true; el.textContent = ''; return; }
+
+  el.hidden = false;
+  el.textContent = '';
+  const dir = c.c > c.o ? 'lg-up' : c.c < c.o ? 'lg-down' : '';
+
+  const put = (key, value, cls) => {
+    const span = document.createElement('span');
+    if (cls) span.className = cls;
+    if (key) { const b = document.createElement('b'); b.textContent = key; span.appendChild(b); span.appendChild(document.createTextNode(' ')); }
+    span.appendChild(document.createTextNode(value));
+    el.appendChild(span);
+  };
+
+  put('', fmtFullTime(c.t));
+  put('O', fmtGweiAt(c.o, decimals), dir);
+  put('H', fmtGweiAt(c.h, decimals), dir);
+  put('L', fmtGweiAt(c.l, decimals), dir);
+  put('C', fmtGweiAt(c.c, decimals), dir);
+  put(t('chart.vol'), (c.v ? c.v.toFixed(6) : '0') + ' ' + CONFIG.chain.currency.symbol);
+}
+
 function renderChart() {
   const svg = $('#chart-svg');
   if (!svg) return;
+  bindChartPointer();
 
-  $$('.seg-btn[data-tf]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.tf === chart.tf ? 'true' : 'false'));
+  $$('.seg-btn[data-tf]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.tf === chart.tfKey ? 'true' : 'false'));
   $$('.seg-btn[data-mode]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.mode === chart.mode ? 'true' : 'false'));
 
   // Переключатель интервала имеет смысл только для свечей.
   const tfGroup = $('.seg-btn[data-tf]') ? $('.seg-btn[data-tf]').parentNode : null;
   if (tfGroup) tfGroup.style.display = chart.mode === 'candles' ? '' : 'none';
 
+  const hint = $('#chart-hint');
+  const hideChrome = () => { setLegend(null); if (hint) hint.hidden = true; };
+
   svg.textContent = '';
   const w = Math.max(320, Math.round(svg.clientWidth || svg.parentNode.clientWidth || 720));
-  const h = Math.max(200, Math.round(svg.clientHeight || 340));
+  const h = Math.max(220, Math.round(svg.clientHeight || 380));
   svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
 
-  if (chart.mode === 'curve') { renderCurveMode(svg, w, h); return; }
+  if (chart.mode === 'curve') { hideChrome(); chart.geom = null; renderCurveMode(svg, w, h); return; }
 
-  if (chart.loading) { chartMessage(t('chart.loading')); setChartStatus(''); return; }
-  if (chart.errorText) { chartMessage(chart.errorText); setChartStatus(''); return; }
-  if (!chart.trades || !chart.trades.length) { chartMessage(t('chart.empty')); setChartStatus(''); return; }
+  if (chart.loading)   { chartMessage(t('chart.loading')); setChartStatus(''); hideChrome(); return; }
+  if (chart.errorText) { chartMessage(chart.errorText);    setChartStatus(''); hideChrome(); return; }
 
-  const tfSec = TIMEFRAMES[chart.tf] || TIMEFRAMES['1h'];
-  const candles = buildCandles(chart.trades, tfSec, CONFIG.chart.maxCandles);
-  if (!candles.length) { chartMessage(t('chart.empty')); return; }
+  const all = chartSeries();
+  if (!all.length) { chartMessage(t('chart.empty')); setChartStatus(''); hideChrome(); chart.geom = null; return; }
 
   chartMessage(null);
-  drawCandles(svg, w, h, candles, tfSec);
+  if (hint) hint.hidden = false;
+  drawCandles(svg, w, h, all);
 
   setChartStatus(t('chart.status', {
     trades: chart.trades.length,
-    candles: candles.length,
-    tf: chart.tf,
+    candles: all.length,
+    tf: timeframeLabel(chart.tfSec),
     block: chart.scanned ? groupDigits(String(chart.scanned.from)) : '?'
-  }));
-  updateLastPrice(candles);
+  }) + (all.truncated ? ' · ' + t('chart.truncated', { from: fmtFullTime(all.from) }) : ''));
 }
 
-function drawCandles(svg, w, h, candles, tfSec) {
-  const padL = 8;
-  const padR = 62;               // ценовая шкала справа, как в торговых терминалах
-  const padT = 12;
-  const padB = 30;
-  const plotW = w - padL - padR;
-  const volH = Math.round((h - padT - padB) * 0.18);
-  const priceH = h - padT - padB - volH - 8;
+/**
+ * Отрисовка свечей в текущем окне просмотра.
+ *
+ * Поле делится на две панели: цена сверху, объём снизу, у каждой своя шкала.
+ * Справа — ценовая ось, снизу — временная; обе являются зонами захвата мыши,
+ * поэтому масштаб по каждой оси тянется отдельно, как в торговых терминалах.
+ */
+function drawCandles(svg, w, h, all) {
+  const n = all.length;
+  ensureView(n);
 
+  const tfSec = chart.tfSec;
+  const padL = 8;
+  const padR = 68;                 // ценовая шкала справа
+  const padT = 14;
+  const padB = 26;                 // временная шкала снизу
+  const plotW = Math.max(40, w - padL - padR);
+  const totalH = Math.max(80, h - padT - padB);
+  const volH = Math.round(totalH * 0.2);
+  const gapH = 12;
+  const priceH = totalH - volH - gapH;
+  const priceTop = padT;
+  const priceBot = padT + priceH;
+  const volTop = priceBot + gapH;
+  const volBot = volTop + volH;
+
+  const step = plotW / chart.span;
+  const xOf = (i) => padL + (i - chart.i0 + 0.5) * step;
+  const iOf = (x) => chart.i0 + (x - padL) / step - 0.5;
+
+  const iA = Math.max(0, Math.floor(chart.i0) - 1);
+  const iB = Math.min(n, Math.ceil(chart.i0 + chart.span) + 1);
+
+  /* Диапазон цен — по видимым свечам, а не по всей серии: иначе при
+     приближении график остался бы плоской линией у края экрана. */
   let lo = Infinity;
   let hi = -Infinity;
   let volMax = 0;
-  candles.forEach((c) => { if (c.l < lo) lo = c.l; if (c.h > hi) hi = c.h; if (c.v > volMax) volMax = c.v; });
-  if (!(hi > lo)) { const pad = Math.max(hi * 0.001, 1); lo = hi - pad; hi = hi + pad; }
-  const span = hi - lo;
-  lo -= span * 0.08;
-  hi += span * 0.08;
+  for (let i = iA; i < iB; i++) {
+    const c = all[i];
+    if (c.l < lo) lo = c.l;
+    if (c.h > hi) hi = c.h;
+    if (c.v > volMax) volMax = c.v;
+  }
+  if (!(lo < hi)) {
+    const mid0 = Number.isFinite(lo) ? lo : (n ? all[n - 1].c : GWEI);
+    const pad0 = Math.max(mid0 * 0.002, 1);
+    lo = mid0 - pad0;
+    hi = mid0 + pad0;
+  }
+  const mid = (lo + hi) / 2;
+  const half = (((hi - lo) / 2) * 1.14) / chart.priceZoom;
+  lo = mid - half;
+  hi = mid + half;
 
-  const yOf = (p) => padT + priceH - ((p - lo) / (hi - lo)) * priceH;
-  const step = plotW / candles.length;
-  const bodyW = Math.max(1, Math.min(14, step * 0.68));
+  const yOf = (p) => priceBot - ((p - lo) / (hi - lo)) * priceH;
+  const pOf = (y) => lo + ((priceBot - y) / priceH) * (hi - lo);
 
-  // сетка и ценовая шкала
-  const ticks = 5;
-  for (let i = 0; i <= ticks; i++) {
-    const p = lo + ((hi - lo) * i) / ticks;
+  const stepP = niceStep(hi - lo, 6);
+  const decimals = clamp(Math.ceil(-Math.log10(stepP / GWEI)), 0, 9);
+
+  chart.geom = { padL, padR, padT, padB, plotW, priceTop, priceBot, volTop, volBot, step, n, decimals, xOf, iOf, yOf, pOf };
+
+  /* — сетка и ценовая шкала — */
+  for (let p = Math.ceil(lo / stepP) * stepP; p <= hi; p += stepP) {
     const y = yOf(p);
-    svg.appendChild(svgEl('line', {class: 'ch-grid', x1: padL, y1: y, x2: padL + plotW, y2: y}));
-    const label = svgEl('text', {class: 'ch-axis', x: padL + plotW + 6, y: y + 3});
-    label.textContent = fmtGwei(p);
+    if (y < priceTop - 0.5 || y > priceBot + 0.5) continue;
+    svg.appendChild(svgEl('line', { class: 'ch-grid', x1: padL, y1: y, x2: padL + plotW, y2: y }));
+    const label = svgEl('text', { class: 'ch-axis', x: padL + plotW + 6, y: y + 3 });
+    label.textContent = fmtGweiAt(p, decimals);
     svg.appendChild(label);
   }
+  svg.appendChild(svgEl('line', { class: 'ch-sep', x1: padL, y1: volTop - gapH / 2, x2: padL + plotW, y2: volTop - gapH / 2 }));
 
-  // объём
-  candles.forEach((c, i) => {
-    if (!(c.v > 0) || volMax <= 0) return;
+  /* — подписи времени: шаг подбираем по пикселям, а не по индексам, иначе
+       при узком графике метки наезжают друг на друга — */
+  // Серия непрерывна по построению — в ней есть каждый интервал от первого
+  // до последнего. Значит время любого слота, включая пустые поля слева и
+  // справа от данных, считается точно, и ось подписана по всей ширине, а не
+  // только там, где случились сделки.
+  const timeAt = (i) => all[0].t + Math.round(i) * tfSec;
+
+  const everyN = Math.max(1, Math.ceil(96 / step));
+  let prevDay = null;
+  for (let i = Math.ceil(chart.i0 / everyN) * everyN; i < chart.i0 + chart.span; i += everyN) {
+    const x = xOf(i);
+    const ts = timeAt(i);
+    const day = Math.floor(ts / 86400);
+    const text = fmtTickTime(ts, tfSec, prevDay === null || day !== prevDay);
+    // Ширину оцениваем по числу знаков: подпись, не влезающую в поле,
+    // обрезал бы край карточки, и получалось бы «08 12:00» вместо даты.
+    const halfW = (text.length * 5.6) / 2 + 2;
+    if (x - halfW < padL || x + halfW > padL + plotW) continue;
+    prevDay = day;
+    const el = svgEl('text', { class: 'ch-axis', x, y: volBot + 16, 'text-anchor': 'middle' });
+    el.textContent = text;
+    svg.appendChild(el);
+  }
+  const unit = svgEl('text', { class: 'ch-hint', x: padL + plotW + 6, y: volBot + 16 });
+  unit.textContent = 'gwei';
+  svg.appendChild(unit);
+
+  /* — объём — */
+  const bodyW = clamp(step * 0.7, 1, 26);
+  for (let i = iA; i < iB; i++) {
+    const c = all[i];
+    if (!(c.v > 0) || volMax <= 0) continue;
     const bh = Math.max(1, (c.v / volMax) * volH);
+    const dir = c.c > c.o ? ' ch-up-v' : c.c < c.o ? ' ch-down-v' : '';
     svg.appendChild(svgEl('rect', {
-      class: 'ch-vol',
-      x: padL + i * step + (step - bodyW) / 2,
-      y: h - padB - bh,
+      class: 'ch-vol' + dir,
+      x: xOf(i) - bodyW / 2,
+      y: volBot - bh,
       width: bodyW,
       height: bh
     }));
-  });
+  }
 
-  // свечи
-  candles.forEach((c, i) => {
-    const cx = padL + i * step + step / 2;
-    const cls = c.empty ? 'ch-flat' : c.c > c.o ? 'ch-up' : c.c < c.o ? 'ch-down' : 'ch-flat';
-    svg.appendChild(svgEl('line', {class: `ch-wick ${cls}`, x1: cx, y1: yOf(c.h), x2: cx, y2: yOf(c.l)}));
+  /* — свечи — */
+  for (let i = iA; i < iB; i++) {
+    const c = all[i];
+    const cx = xOf(i);
+    if (cx < padL - step || cx > padL + plotW + step) continue;
+
+    // Интервал без сделок — не свеча, а перенос предыдущего закрытия.
+    // Рисуем дожи-чертой, чтобы её нельзя было принять за торговлю.
+    if (c.empty) {
+      const y = yOf(c.c);
+      if (y >= priceTop && y <= priceBot) {
+        svg.appendChild(svgEl('line', {
+          class: 'ch-wick ch-flat', x1: cx - bodyW / 2, y1: y, x2: cx + bodyW / 2, y2: y, opacity: 0.45
+        }));
+      }
+      continue;
+    }
+
+    const cls = c.c > c.o ? 'ch-up' : c.c < c.o ? 'ch-down' : 'ch-flat';
+    svg.appendChild(svgEl('line', { class: `ch-wick ${cls}`, x1: cx, y1: yOf(c.h), x2: cx, y2: yOf(c.l) }));
     const yTop = yOf(Math.max(c.o, c.c));
     const bodyH = Math.max(1, Math.abs(yOf(c.o) - yOf(c.c)));
-    const r = svgEl('rect', {class: cls, x: cx - bodyW / 2, y: yTop, width: bodyW, height: bodyH});
-    if (c.empty) r.setAttribute('opacity', '0.35');
-    const title = svgEl('title');
-    title.textContent = `${fmtAxisTime(c.t, tfSec)} · O ${fmtGwei(c.o)} H ${fmtGwei(c.h)} L ${fmtGwei(c.l)} C ${fmtGwei(c.c)} gwei` +
-      (c.n ? ` · ${c.n}×` : '');
-    r.appendChild(title);
-    svg.appendChild(r);
-  });
+    svg.appendChild(svgEl('rect', { class: cls, x: cx - bodyW / 2, y: yTop, width: bodyW, height: bodyH }));
+  }
 
-  // ось времени: подписи по краям и в середине, чтобы не сливались
-  [0, Math.floor(candles.length / 2), candles.length - 1].forEach((i, k) => {
-    if (i < 0 || i >= candles.length) return;
-    const x = padL + i * step + step / 2;
-    const el = svgEl('text', {
-      class: 'ch-axis',
-      x: Math.min(Math.max(x, padL + 2), padL + plotW - 2),
-      y: h - padB + 16,
-      'text-anchor': k === 0 ? 'start' : k === 2 ? 'end' : 'middle'
-    });
-    el.textContent = fmtAxisTime(candles[i].t, tfSec);
-    svg.appendChild(el);
-  });
+  /* — линия последней цены — */
+  const lastC = all[n - 1];
+  const yLast = yOf(lastC.c);
+  if (yLast >= priceTop && yLast <= priceBot) {
+    svg.appendChild(svgEl('line', { class: 'ch-last', x1: padL, y1: yLast, x2: padL + plotW, y2: yLast }));
+    axisTag(svg, padL + plotW + 2, yLast, fmtGweiAt(lastC.c, decimals), 'ch-last-tag');
+  }
 
-  const unit = svgEl('text', {class: 'ch-hint', x: padL + plotW + 6, y: h - padB + 16});
-  unit.textContent = 'gwei';
-  svg.appendChild(unit);
+  /* — перекрестие — */
+  let legendCandle = lastC;
+  const cr = chart.cross;
+  if (cr && cr.x >= padL && cr.x <= padL + plotW && cr.y >= priceTop && cr.y <= volBot) {
+    const idx = Math.round(iOf(cr.x));
+    const cx = xOf(idx);
+    svg.appendChild(svgEl('line', { class: 'ch-cross', x1: cx, y1: priceTop, x2: cx, y2: volBot }));
+    if (cr.y <= priceBot) {
+      svg.appendChild(svgEl('line', { class: 'ch-cross', x1: padL, y1: cr.y, x2: padL + plotW, y2: cr.y }));
+      axisTag(svg, padL + plotW + 2, cr.y, fmtGweiAt(pOf(cr.y), decimals), 'ch-tag');
+    }
+    // Время показываем и над пустым полем: слот там есть, просто без сделок.
+    axisTag(svg, cx, volBot + 11, fmtFullTime(timeAt(idx)), 'ch-tag', true, w);
+    if (idx >= 0 && idx < n) legendCandle = all[idx];
+  }
+  setLegend(legendCandle, tfSec, decimals);
+  updateLastPrice(all, iA, iB, decimals);
+
+  /* — зоны захвата осей: добавляются последними, чтобы быть сверху и
+       задавать курсор именно там, где начинается перетаскивание — */
+  svg.appendChild(svgEl('rect', {
+    class: 'ch-zone ch-zone-price', x: padL + plotW, y: priceTop, width: padR, height: volBot - priceTop
+  }));
+  svg.appendChild(svgEl('rect', {
+    class: 'ch-zone ch-zone-time', x: padL, y: volBot, width: plotW, height: Math.max(1, h - volBot)
+  }));
 }
 
-/* Режим «кривая»: цена как функция проданного объёма. Это не история, а
-   чистая функция контракта — она осмысленна даже когда сделок ещё нет. */
+/**
+ * Плашка на шкале: тёмный прямоугольник с бумажным текстом поверх.
+ * limitW — ширина холста: у края плашка прижимается, а не уезжает за него.
+ */
+function axisTag(svg, x, y, text, cls, centered, limitW) {
+  const chW = 5.6;
+  const padX = 5;
+  const boxW = text.length * chW + padX * 2;
+  const boxH = 15;
+  let bx = centered ? x - boxW / 2 : x;
+  if (limitW) bx = clamp(bx, 0, Math.max(0, limitW - boxW));
+  svg.appendChild(svgEl('rect', { class: cls || 'ch-tag', x: bx, y: y - boxH / 2, width: boxW, height: boxH, rx: 2 }));
+  const el = svgEl('text', { class: 'ch-tag-text', x: bx + boxW / 2, y: y + 3.5, 'text-anchor': 'middle' });
+  el.textContent = text;
+  svg.appendChild(el);
+}
+
+/* ── управление мышью и касанием ───────────────────────────────────────── *
+ *
+ *  Обработчики висят на самом <svg>, а не на его детях: содержимое
+ *  перерисовывается целиком на каждый кадр, и слушатели на элементах
+ *  пришлось бы вешать заново по сто раз в секунду.
+ *
+ *  Какая ось тянется, определяется по координате, а не по цели события, —
+ *  так перетаскивание не срывается, когда курсор ушёл за край зоны.
+ */
+function bindChartPointer() {
+  if (chart.bound) return;
+  const svg = $('#chart-svg');
+  if (!svg) return;
+  chart.bound = true;
+
+  const pointAt = (e) => {
+    const r = svg.getBoundingClientRect();
+    const vb = svg.viewBox && svg.viewBox.baseVal;
+    const sx = vb && vb.width && r.width ? vb.width / r.width : 1;
+    const sy = vb && vb.height && r.height ? vb.height / r.height : 1;
+    return { x: (e.clientX - r.left) * sx, y: (e.clientY - r.top) * sy };
+  };
+
+  const zoneAt = (p) => {
+    const g = chart.geom;
+    if (!g) return 'pan';
+    if (p.x > g.padL + g.plotW) return 'price';
+    if (p.y > g.volBot) return 'time';
+    return 'pan';
+  };
+
+  let raf = null;
+  const schedule = () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = null; renderChart(); });
+  };
+
+  svg.addEventListener('wheel', (e) => {
+    if (chart.mode !== 'candles' || !chart.geom) return;
+    e.preventDefault();
+    const g = chart.geom;
+    const p = pointAt(e);
+    // Индекс под курсором обязан остаться на месте — иначе приближение
+    // «уводит» график и им невозможно пользоваться.
+    const anchor = chart.i0 + (p.x - g.padL) / g.step;
+    chart.span = clamp(chart.span * (e.deltaY > 0 ? 1.15 : 1 / 1.15), VIEW.minSpan, VIEW.maxSpan);
+    chart.i0 = anchor - (p.x - g.padL) / (g.plotW / chart.span);
+    clampView(g.n);
+    schedule();
+  }, { passive: false });
+
+  svg.addEventListener('pointerdown', (e) => {
+    if (chart.mode !== 'candles' || !chart.geom) return;
+    const p = pointAt(e);
+    chart.drag = {
+      kind: zoneAt(p),
+      x: p.x, y: p.y,
+      i0: chart.i0, span: chart.span, priceZoom: chart.priceZoom,
+      step: chart.geom.step, plotW: chart.geom.plotW
+    };
+    try { svg.setPointerCapture(e.pointerId); } catch (_) { /* старый браузер */ }
+  });
+
+  svg.addEventListener('pointermove', (e) => {
+    if (chart.mode !== 'candles') return;
+    const p = pointAt(e);
+    const d = chart.drag;
+    if (d) {
+      if (d.kind === 'pan') {
+        chart.i0 = d.i0 - (p.x - d.x) / d.step;
+      } else if (d.kind === 'time') {
+        chart.span = clamp(d.span * (1 + ((d.x - p.x) / d.plotW) * 1.8), VIEW.minSpan, VIEW.maxSpan);
+      } else {
+        // Вверх — растянуть цену, вниз — сжать. Экспонента, чтобы ход ручки
+        // ощущался одинаково на любом текущем масштабе.
+        chart.priceZoom = clamp(d.priceZoom * Math.exp((d.y - p.y) / 180), VIEW.minPriceZoom, VIEW.maxPriceZoom);
+      }
+      if (chart.geom) clampView(chart.geom.n);
+      chart.cross = null;
+    } else {
+      chart.cross = p;
+    }
+    schedule();
+  });
+
+  const endDrag = (e) => {
+    if (!chart.drag) return;
+    chart.drag = null;
+    try { svg.releasePointerCapture(e.pointerId); } catch (_) { /* уже отпущен */ }
+    schedule();
+  };
+  svg.addEventListener('pointerup', endDrag);
+  svg.addEventListener('pointercancel', endDrag);
+  svg.addEventListener('pointerleave', () => {
+    if (chart.drag) return;
+    chart.cross = null;
+    schedule();
+  });
+
+  svg.addEventListener('dblclick', () => {
+    if (chart.mode !== 'candles') return;
+    resetView();
+    renderChart();
+  });
+}
+
 async function loadCurveShape() {
   if (chart.shape) return;
   const C = CONFIG.contracts.curve;
@@ -3014,15 +3391,17 @@ function setChartStatus(text) {
   if (el) el.textContent = text || '';
 }
 
-function updateLastPrice(candles) {
+/** Заголовок: последняя цена и изменение за то окно, которое видно сейчас. */
+function updateLastPrice(all, iA, iB, decimals) {
   const last = $('#chart-last');
   const chg = $('#chart-change');
-  if (!last || !candles.length) return;
-  const first = candles[0];
-  const cur = candles[candles.length - 1];
-  last.textContent = fmtGwei(cur.c) + ' gwei';
-  const base = first.o;
-  if (!(base > 0)) { chg.textContent = ''; chg.className = 'chg'; return; }
+  if (!last || !all.length) return;
+
+  const cur = all[all.length - 1];
+  last.textContent = fmtGweiAt(cur.c, Math.max(decimals, 4)) + ' gwei';
+
+  const base = all[Math.max(0, Math.min(iA, all.length - 1))].o;
+  if (!(base > 0) || iB <= iA) { chg.textContent = ''; chg.className = 'chg'; return; }
   const pct = ((cur.c - base) / base) * 100;
   chg.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
   chg.className = 'chg' + (pct > 0 ? ' is-up' : pct < 0 ? ' is-down' : '');
@@ -3375,7 +3754,35 @@ function init() {
     b.addEventListener('click', () => fillSellPct(Number(b.dataset.sellPct)));
   });
 
-  $$('.seg-btn[data-tf]').forEach((b) => b.addEventListener('click', () => { chart.tf = b.dataset.tf; renderChart(); }));
+  // Смена интервала меняет и длину серии, поэтому окно просмотра из старого
+  // масштаба переносить некуда — сбрасываем в авто.
+  const customTf = $('#tf-custom');
+  const applyTf = (sec, key) => {
+    chart.tfSec = sec;
+    chart.tfKey = key || null;
+    resetView();
+    renderChart();
+  };
+
+  $$('.seg-btn[data-tf]').forEach((b) => b.addEventListener('click', () => {
+    if (customTf) { customTf.value = ''; customTf.className = 'tf-custom'; }
+    applyTf(TIMEFRAMES[b.dataset.tf], b.dataset.tf);
+  }));
+
+  if (customTf) {
+    const applyCustom = () => {
+      const raw = customTf.value.trim();
+      if (!raw) { customTf.className = 'tf-custom'; return; }
+      const sec = parseTimeframe(raw);
+      // Непонятный ввод подсвечиваем и НЕ применяем: молча подставить своё
+      // значение хуже, чем показать, что строка не разобрана.
+      if (!sec) { customTf.className = 'tf-custom is-bad'; return; }
+      customTf.className = 'tf-custom is-active';
+      applyTf(sec, null);
+    };
+    customTf.addEventListener('change', applyCustom);
+    customTf.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); applyCustom(); } });
+  }
   $$('.seg-btn[data-mode]').forEach((b) => b.addEventListener('click', () => { chart.mode = b.dataset.mode; renderChart(); }));
   $('#chart-reload').addEventListener('click', () => loadTrades(true));
 

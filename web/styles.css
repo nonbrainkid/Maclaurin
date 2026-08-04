@@ -757,9 +757,38 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
 .seg-btn[aria-pressed="true"] { background: var(--surface-2); color: var(--ink); font-weight: 600; }
 .seg-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
+/* Поле произвольного интервала — тех же размеров, что кнопки пресетов,
+   чтобы ряд читался как одна панель управления. */
+.tf-custom {
+  font: inherit;
+  font-family: var(--mono);
+  font-size: .74rem;
+  width: 4.2rem;
+  padding: .3rem .5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--paper);
+  color: var(--ink);
+  min-width: 0;
+}
+.tf-custom::placeholder { color: var(--ink-3); }
+.tf-custom.is-active { border-color: var(--accent); color: var(--ink); }
+.tf-custom.is-bad { border-color: var(--err); color: var(--err); }
+.tf-custom:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+
 .chart-body { position: relative; padding: .75rem .5rem .25rem; }
-#chart-svg { display: block; width: 100%; height: 340px; }
-@media (max-width: 40rem) { #chart-svg { height: 260px; } }
+#chart-svg {
+  display: block;
+  width: 100%;
+  height: 380px;
+  cursor: crosshair;
+  /* Вертикальный свайп остаётся прокруткой страницы, горизонтальный
+     забираем себе под панораму графика. */
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+@media (max-width: 40rem) { #chart-svg { height: 300px; } }
 
 .chart-empty {
   position: absolute;
@@ -772,9 +801,52 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
   padding: 1.5rem;
   font-size: .88rem;
   color: var(--ink-3);
-  max-width: 32rem;
-  margin-inline: auto;
 }
+/* Атрибут hidden прячет элемент через display:none из браузерного стиля,
+   а у него нулевая специфичность — правило класса выше его перебивало, и
+   сообщение оставалось поверх нарисованных свечей. */
+.chart-empty[hidden] { display: none; }
+
+/* Легенда OHLC в углу поля — как в терминалах. Мышь сквозь неё проходит,
+   иначе она сама сбивала бы перекрестие. */
+.chart-legend {
+  position: absolute;
+  top: 1.1rem;
+  left: 1.1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .1rem .7rem;
+  font-family: var(--mono);
+  font-size: .72rem;
+  color: var(--ink-3);
+  pointer-events: none;
+  line-height: 1.5;
+}
+.chart-legend b { font-weight: 500; color: var(--ink-2); }
+.chart-legend .lg-up { color: var(--ok); }
+.chart-legend .lg-down { color: var(--err); }
+.chart-legend[hidden] { display: none; }
+
+/* Подсказка по управлению — в правом верхнем углу поля, напротив легенды.
+   Внизу она ложилась прямо на подписи оси времени. */
+.chart-hint {
+  position: absolute;
+  right: 1.1rem;
+  top: 1.1rem;
+  max-width: 45%;
+  text-align: right;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: .66rem;
+  line-height: 1.45;
+  color: var(--ink-3);
+  opacity: .7;
+  pointer-events: none;
+}
+/* Прячем раньше, чем подсказка успеет столкнуться с легендой слева, — и
+   заодно там, где мыши с колесом всё равно нет. */
+@media (max-width: 64rem) { .chart-hint { display: none; } }
+.chart-hint[hidden] { display: none; }
 
 .chart-foot {
   display: flex;
@@ -792,16 +864,31 @@ tr.row-final td { background: var(--surface-2); font-weight: 600; }
 /* Элементы самого графика. Цвета — через переменные, поэтому тема меняется
    без единой строки скрипта. */
 .ch-grid { stroke: var(--line); stroke-width: 1; }
+.ch-sep { stroke: var(--line-2); stroke-width: 1; }
 .ch-axis { fill: var(--ink-3); font-family: var(--mono); font-size: 10px; }
-.ch-wick { stroke-width: 1.5; }
+.ch-wick { stroke-width: 1.4; }
 .ch-up   { fill: var(--ok); stroke: var(--ok); }
 .ch-down { fill: var(--err); stroke: var(--err); }
 .ch-flat { fill: var(--ink-3); stroke: var(--ink-3); }
 .ch-vol  { fill: var(--line-2); }
+.ch-vol.ch-up-v { fill: var(--ok); opacity: .45; }
+.ch-vol.ch-down-v { fill: var(--err); opacity: .45; }
 .ch-curve { fill: none; stroke: var(--accent); stroke-width: 2; }
 .ch-area { fill: var(--accent); opacity: .09; }
 .ch-marker { fill: var(--accent); }
 .ch-hint { fill: var(--ink-3); font-family: var(--mono); font-size: 10px; }
+
+/* Перекрестие и его подписи на шкалах. */
+.ch-cross { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; }
+.ch-tag { fill: var(--ink); pointer-events: none; }
+.ch-tag-text { fill: var(--paper); font-family: var(--mono); font-size: 10px; pointer-events: none; }
+.ch-last { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 4 4; }
+.ch-last-tag { fill: var(--accent); }
+
+/* Зоны шкал: тянутся мышью, поэтому курсор говорит об этом заранее. */
+.ch-zone { fill: transparent; }
+.ch-zone-price { cursor: ns-resize; }
+.ch-zone-time { cursor: ew-resize; }
 
 /* ── вкладки покупки и продажи ──────────────────────────────────────────── */
 

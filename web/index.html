@@ -538,12 +538,22 @@
       </div>
       <div class="chart-controls">
         <div class="seg" role="group" data-i18n-aria="chart.tf.aria" aria-label="Timeframe">
+          <button type="button" class="seg-btn" data-tf="1s">1s</button>
+          <button type="button" class="seg-btn" data-tf="15s">15s</button>
+          <button type="button" class="seg-btn" data-tf="1m">1m</button>
           <button type="button" class="seg-btn" data-tf="5m">5m</button>
           <button type="button" class="seg-btn" data-tf="15m">15m</button>
           <button type="button" class="seg-btn" data-tf="1h" aria-pressed="true">1H</button>
           <button type="button" class="seg-btn" data-tf="4h">4H</button>
           <button type="button" class="seg-btn" data-tf="1d">1D</button>
         </div>
+
+        <!-- Произвольный интервал: «45s», «2m», «1.5h», «3d» или просто число
+             секунд. Пресеты — частые случаи, здесь всё остальное. -->
+        <input id="tf-custom" class="tf-custom" type="text" inputmode="text" autocomplete="off"
+               spellcheck="false" maxlength="8" placeholder="30s"
+               data-i18n-aria="chart.custom.aria" data-i18n-title="chart.custom.hint"
+               aria-label="Custom timeframe">
         <div class="seg" role="group" data-i18n-aria="chart.mode.aria" aria-label="Chart mode">
           <button type="button" class="seg-btn" data-mode="candles" aria-pressed="true" data-i18n="chart.mode.candles">Candles</button>
           <button type="button" class="seg-btn" data-mode="curve" data-i18n="chart.mode.curve">Curve</button>
@@ -553,6 +563,8 @@
 
     <div class="chart-body">
       <svg id="chart-svg" role="img" data-i18n-aria="chart.aria" aria-label="Price chart"></svg>
+      <div class="chart-legend" id="chart-legend" hidden></div>
+      <p class="chart-hint" id="chart-hint" data-i18n="chart.hint">Scroll to zoom · drag to pan · drag an axis to scale it · double-click to reset</p>
       <p class="chart-empty" id="chart-empty" hidden></p>
     </div>
 
