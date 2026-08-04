@@ -428,6 +428,7 @@ const I18N = {
     'chart.custom.aria': 'Custom timeframe',
     'chart.custom.hint': 'Custom candle interval: 45s, 2m, 1.5h, 3d — or a plain number of seconds. From 1 second to 30 days.',
     'chart.truncated': 'trimmed to the last {from} at this interval',
+    'chart.noneInView': 'No trades in this window. There are {n} in the series — zoom out, or double-click to fit them.',
 
     /* — вкладки и продажа — */
     'trade.sell': 'Sell',
@@ -840,6 +841,7 @@ const I18N = {
     'chart.custom.aria': 'Свой интервал',
     'chart.custom.hint': 'Свой интервал свечи: 45s, 2m, 1.5h, 3d — или просто число секунд. От 1 секунды до 30 дней.',
     'chart.truncated': 'обрезано до последних {from} на этом интервале',
+    'chart.noneInView': 'В этом окне сделок нет. Всего их в серии {n} — отдалите колесом или сбросьте двойным кликом.',
 
     /* — вкладки и продажа — */
     'trade.sell': 'Продать',
@@ -2679,11 +2681,15 @@ const chart = {
    улететь в состояние, из которого не видно ни одной свечи. */
 const VIEW = {
   minSpan: 8,
-  maxSpan: 3000,
-  defaultSpan: 70,
-  maxSeries: 4000,     // потолок длины серии, чтобы 5m за год не съел память
+  maxSpan: 20000,
+  maxSeries: 20000,    // потолок длины серии: ~5.5 часа на 1s, две недели на 1m
   minPriceZoom: 0.05,
-  maxPriceZoom: 60
+  maxPriceZoom: 60,
+  // Ниже этой ширины свечи пустые интервалы не рисуем: они всё равно
+  // сливаются в сплошную полосу, а перерисовка тормозит.
+  denseStepPx: 1.2,
+  // Реальная сделка не должна становиться волоском и теряться среди заливки.
+  minRealBodyPx: 2
 };
 
 const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
@@ -2835,6 +2841,10 @@ function buildCandles(trades, tfSec) {
   // показать «часть» и назвать это всей историей нельзя — помечаем.
   out.truncated = start > first;
   out.from = start;
+  // Индексы свечей со сделками. На секундном интервале их единицы среди
+  // тысяч пустых, и отрисовка ходит только по ним.
+  out.real = [];
+  out.forEach((c, i) => { if (!c.empty) out.real.push(i); });
   return out;
 }
 
@@ -2853,14 +2863,36 @@ function resetView() {
   chart.priceZoom = 1;
 }
 
-/** Стартовое окно: последние свечи прижаты вправо, с небольшим полем. */
-function ensureView(n) {
-  if (chart.span === null || !Number.isFinite(chart.span)) {
-    chart.span = clamp(VIEW.defaultSpan, VIEW.minSpan, VIEW.maxSpan);
+/**
+ * Стартовое окно строится по данным, а не по фиксированному числу свечей.
+ *
+ * Раньше здесь было «последние 70 свечей» — на пятиминутках и выше это
+ * совпадало со всей историей, а на секундах окно уезжало в пустоту: пять
+ * сделок за 83 минуты на интервале 1s разнесены на тысячи свечей друг от
+ * друга, и в кадр попадала одна. Теперь рамка охватывает реальные сделки.
+ */
+function ensureView(n, series, plotW) {
+  if (Number.isFinite(chart.span) && Number.isFinite(chart.i0)) { clampView(n); return; }
+
+  let first = -1;
+  let last = -1;
+  for (let i = 0; i < n; i++) {
+    if (series[i].empty) continue;
+    if (first < 0) first = i;
+    last = i;
   }
-  if (chart.i0 === null || !Number.isFinite(chart.i0)) {
-    chart.i0 = n - chart.span * 0.94;
-  }
+  if (first < 0) { first = 0; last = Math.max(0, n - 1); }
+
+  const dataSpan = Math.max(1, last - first + 1);
+  // Порог низкий намеренно: пустые интервалы при таком масштабе не рисуются
+  // вовсе, поэтому широкая рамка ничего не стоит, зато все сделки в кадре.
+  const maxUseful = Math.max(VIEW.minSpan, plotW / 0.04);
+  const span = clamp(dataSpan * 1.22 + 4, VIEW.minSpan, Math.min(VIEW.maxSpan, maxUseful));
+
+  chart.span = span;
+  chart.i0 = span >= dataSpan
+    ? (first + last + 1) / 2 - span / 2      // всё влезло — центрируем
+    : last + 1 - span * 0.94;                // не влезло — прижимаем к свежему
   clampView(n);
 }
 
@@ -2990,7 +3022,6 @@ function renderChart() {
  */
 function drawCandles(svg, w, h, all) {
   const n = all.length;
-  ensureView(n);
 
   const tfSec = chart.tfSec;
   const padL = 8;
@@ -2998,6 +3029,9 @@ function drawCandles(svg, w, h, all) {
   const padT = 14;
   const padB = 26;                 // временная шкала снизу
   const plotW = Math.max(40, w - padL - padR);
+
+  // Рамка зависит от ширины поля, поэтому считается после геометрии.
+  ensureView(n, all, plotW);
   const totalH = Math.max(80, h - padT - padB);
   const volH = Math.round(totalH * 0.2);
   const gapH = 12;
@@ -3083,27 +3117,24 @@ function drawCandles(svg, w, h, all) {
   unit.textContent = 'gwei';
   svg.appendChild(unit);
 
-  /* — объём — */
+  /* — свечи и объём — */
   const bodyW = clamp(step * 0.7, 1, 26);
-  for (let i = iA; i < iB; i++) {
-    const c = all[i];
-    if (!(c.v > 0) || volMax <= 0) continue;
-    const bh = Math.max(1, (c.v / volMax) * volH);
-    const dir = c.c > c.o ? ' ch-up-v' : c.c < c.o ? ' ch-down-v' : '';
-    svg.appendChild(svgEl('rect', {
-      class: 'ch-vol' + dir,
-      x: xOf(i) - bodyW / 2,
-      y: volBot - bh,
-      width: bodyW,
-      height: bh
-    }));
-  }
+  const dense = step < VIEW.denseStepPx;
+  const realW = Math.max(bodyW, VIEW.minRealBodyPx);
+  let realInView = 0;
 
-  /* — свечи — */
-  for (let i = iA; i < iB; i++) {
+  const drawSlot = (i) => {
     const c = all[i];
     const cx = xOf(i);
-    if (cx < padL - step || cx > padL + plotW + step) continue;
+    if (cx < padL - step || cx > padL + plotW + step) return;
+
+    if (c.v > 0 && volMax > 0) {
+      const bh = Math.max(1, (c.v / volMax) * volH);
+      const dirV = c.c > c.o ? ' ch-up-v' : c.c < c.o ? ' ch-down-v' : '';
+      svg.appendChild(svgEl('rect', {
+        class: 'ch-vol' + dirV, x: cx - realW / 2, y: volBot - bh, width: realW, height: bh
+      }));
+    }
 
     // Интервал без сделок — не свеча, а перенос предыдущего закрытия.
     // Рисуем дожи-чертой, чтобы её нельзя было принять за торговлю.
@@ -3114,14 +3145,42 @@ function drawCandles(svg, w, h, all) {
           class: 'ch-wick ch-flat', x1: cx - bodyW / 2, y1: y, x2: cx + bodyW / 2, y2: y, opacity: 0.45
         }));
       }
-      continue;
+      return;
     }
 
+    realInView++;
     const cls = c.c > c.o ? 'ch-up' : c.c < c.o ? 'ch-down' : 'ch-flat';
     svg.appendChild(svgEl('line', { class: `ch-wick ${cls}`, x1: cx, y1: yOf(c.h), x2: cx, y2: yOf(c.l) }));
     const yTop = yOf(Math.max(c.o, c.c));
     const bodyH = Math.max(1, Math.abs(yOf(c.o) - yOf(c.c)));
-    svg.appendChild(svgEl('rect', { class: cls, x: cx - bodyW / 2, y: yTop, width: bodyW, height: bodyH }));
+    // Сделку рисуем шириной не меньше пары пикселей: на секундном интервале
+    // свеча иначе становится волоском и теряется среди пустых.
+    svg.appendChild(svgEl('rect', { class: cls, x: cx - realW / 2, y: yTop, width: realW, height: bodyH }));
+  };
+
+  if (dense) {
+    // Пустые интервалы при таком масштабе всё равно сливаются в полосу, а их
+    // тут тысячи. Идём только по сделкам — стоимость кадра перестаёт зависеть
+    // от того, насколько далеко отдалён график.
+    const real = all.real || [];
+    for (let k = 0; k < real.length; k++) {
+      const i = real[k];
+      if (i >= iA && i < iB) drawSlot(i);
+    }
+  } else {
+    for (let i = iA; i < iB; i++) drawSlot(i);
+  }
+
+  // Попасть окном в пустой промежуток легко — тогда прямо говорим об этом,
+  // а не оставляем пустое поле без объяснений.
+  if (realInView === 0) {
+    let realTotal = 0;
+    for (let i = 0; i < n; i++) if (!all[i].empty) realTotal++;
+    const note = svgEl('text', {
+      class: 'ch-hint', x: padL + plotW / 2, y: priceTop + (priceBot - priceTop) / 2, 'text-anchor': 'middle'
+    });
+    note.textContent = t('chart.noneInView', { n: realTotal });
+    svg.appendChild(note);
   }
 
   /* — линия последней цены — */
