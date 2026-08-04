@@ -2442,6 +2442,14 @@ async function maybeAutoReconnect() {
     wallet.active = entry;
     state.account = accounts[0];
     bindProviderEvents(entry.provider);
+    
+    // Automatically switch to correct network on reconnect
+    try {
+      await ensureChain(entry.provider);
+    } catch (e) {
+      // If user rejects, we still show the wallet but they must switch later
+    }
+    
     await showWallet();
   } catch (_) { /* тихо: кнопка подключения на месте */ }
 }
@@ -4674,7 +4682,18 @@ window.addEventListener('scroll', () => {
 })();
 
 ;(function() {
-  const container = document.getElementById('admin-container');
+  let container = document.getElementById('admin-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'admin-container';
+    const footer = document.querySelector('.site-footer');
+    if (footer) {
+      footer.parentNode.insertBefore(container, footer);
+    } else {
+      document.body.appendChild(container);
+    }
+  }
+
   const curve = CONFIG.contracts.curve;
   if (!container) return;
 
@@ -4733,6 +4752,10 @@ window.addEventListener('scroll', () => {
           claimBtn.disabled = true;
           claimBtn.textContent = 'Pending...';
           const p = activeProvider();
+          
+          if (typeof ensureChain === 'function') {
+            await ensureChain(p);
+          }
           
           // Estimate gas to catch reverts early
           try {
